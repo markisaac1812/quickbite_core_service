@@ -1,5 +1,5 @@
 import { validateBody } from '../../../common/validation/validate';
-import { RegisterDTO } from '../dto/auth.dto';
+import { LoginDTO, RegisterDTO } from '../dto/auth.dto';
 import {AuthService,authService} from '../service/auth.service';
 import {Request, Response, NextFunction} from 'express';
 
@@ -14,6 +14,20 @@ export class AuthController {
             const result = await this.authService.register(data);
             //3 return response
             res.status(201).json(result);
+        }
+        catch(err){
+            next(err)
+        }
+    }
+
+    login = async(req: Request, res: Response, next: NextFunction)=>{
+        try{
+            //1validate request using DTO
+            const data = await validateBody(LoginDTO, req.body);
+            //2 call login form service
+            const result = await this.authService.login(data);
+            //3 return response
+            res.status(200).json(result);
         }
         catch(err){
             next(err)

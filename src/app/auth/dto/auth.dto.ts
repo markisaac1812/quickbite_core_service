@@ -1,4 +1,4 @@
-import {IsEmail, MinLength, IsString, IsStrongPassword, MaxLength, IsEnum} from "class-validator";
+import {IsEmail, MinLength, IsString, IsStrongPassword, MaxLength, IsEnum, IsNotEmpty} from "class-validator";
 import {SystemRole} from "../../user/entity/enums";
 
 export class RegisterDTO {
@@ -27,4 +27,14 @@ export class RegisterDTO {
 
     @IsEnum(SystemRole)
     role!: SystemRole;
+}
+
+export class LoginDTO {
+    @IsEmail()
+    email!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    
+    password!: string;
 }

@@ -21,3 +21,7 @@ export function createRefreshToken(payload: JwtPayload) : string {
     const options : SignOptions = {expiresIn: Number(env.jwt.refreshExpiresIn)}
     return jwt.sign(payload,env.jwt.refreshSecret, options);
 }
+
+export function comparePassword(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
+}
