@@ -38,3 +38,8 @@ export class LoginDTO {
     
     password!: string;
 }
+
+export class ForgotPasswordDTO {
+    @IsEmail()
+    email!: string;
+}

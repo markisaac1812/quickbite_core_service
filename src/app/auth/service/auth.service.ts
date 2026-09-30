@@ -1,8 +1,9 @@
 import {SystemRole} from "../../user/entity/enums";
 import {findUserExistsByEmailOrPhone, createUser, findUserByEmail} from "../../user/repository/user.repo";
-import {LoginDTO, RegisterDTO} from "../dto/auth.dto";
+import {LoginDTO, RegisterDTO,ForgotPasswordDTO} from "../dto/auth.dto";
 import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError} from "../errors";
-import {hashPassword, createAccessToken, createRefreshToken,comparePassword} from "../utils";
+import { createPasswordReset } from "../repository/auth.repo";
+import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP} from "../utils";
 
 export class AuthService {
     register = async(data: RegisterDTO )=> {
@@ -83,6 +84,29 @@ export class AuthService {
             }
         }
     }
+
+    forgetPassword = async(data: ForgotPasswordDTO) => {
+        // 1. check if user exists by email
+        const existing = await findUserByEmail(data.email);
+        if(!existing) {
+            return; // we retune silently to avoid user enumeration
+        }
+        // 2. generate OTP
+        const otp = generateOTP();
+        //3. hash OTP
+        const hashedOTP = hashOTP(otp);
+        // 4. create password reset entry
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes from now
+        await createPasswordReset({
+            userId: existing.id,
+            otpHashed: hashedOTP,
+            expiresAt,
+            createdAt: now,
+        });
+        //5 Send email (future implementation)
+        console.log(`Sending OTP ${otp} to email ${existing.email}`);
+    };
 
 }
 
