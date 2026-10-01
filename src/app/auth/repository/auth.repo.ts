@@ -22,3 +22,22 @@ export async function createPasswordReset(passwordReset: Partial<PasswordReset>)
         created_at: passwordReset.createdAt
     })
 }
+
+export async function findLatestPasswordResetByUserId(userId: number): Promise<PasswordReset | null> {
+    const row = await db("password_resets")
+        .select(PASSWORD_RESET_COLS)
+        .where("user_id", userId)
+        .whereNull("consumed_at")
+        .orderBy('id', 'desc')
+        .first()
+    return toEntity(row)
+}
+
+export async function updatePasswordResetConsumedAt(id: number): Promise<void> {
+    await db("password_resets")
+        .where("id", id)
+        .update({
+            consumed_at: new Date()
+        })
+}
+

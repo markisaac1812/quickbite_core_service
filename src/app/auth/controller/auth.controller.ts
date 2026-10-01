@@ -1,5 +1,5 @@
 import { validateBody } from '../../../common/validation/validate';
-import { ForgotPasswordDTO, LoginDTO, RegisterDTO } from '../dto/auth.dto';
+import { ForgotPasswordDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from '../dto/auth.dto';
 import {AuthService,authService} from '../service/auth.service';
 import {Request, Response, NextFunction} from 'express';
 
@@ -47,6 +47,21 @@ export class AuthController {
             next(err)
         }
     };
+
+    resetPassword = async(req: Request, res: Response, next: NextFunction)=>{
+        try{
+            //1validate request using DTO
+            const data = await validateBody(ResetPasswordDTO, req.body);
+            //2 call reset password form service
+            await this.authService.resetPassword(data);
+            //3 return response
+            res.status(200).json({message: 'Password reset successfully.'});
+        }
+        catch(err){
+            next(err)
+        }
+    };
+
 }
 
 export const authController = new AuthController(authService);

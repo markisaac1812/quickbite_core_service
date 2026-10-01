@@ -21,3 +21,7 @@ Create controllers
 Create routes
 insert it into src/routes if it is the first time we create this router in the module
 Test , Repeat
+
+
+-----------------
+dto have api contracts (like the same name in requests)

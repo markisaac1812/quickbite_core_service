@@ -1,8 +1,8 @@
 import {SystemRole} from "../../user/entity/enums";
-import {findUserExistsByEmailOrPhone, createUser, findUserByEmail} from "../../user/repository/user.repo";
-import {LoginDTO, RegisterDTO,ForgotPasswordDTO} from "../dto/auth.dto";
-import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError} from "../errors";
-import { createPasswordReset } from "../repository/auth.repo";
+import {findUserExistsByEmailOrPhone, createUser, findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
+import {LoginDTO, RegisterDTO,ForgotPasswordDTO,ResetPasswordDTO} from "../dto/auth.dto";
+import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError} from "../errors";
+import { createPasswordReset, findLatestPasswordResetByUserId, updatePasswordResetConsumedAt } from "../repository/auth.repo";
 import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP} from "../utils";
 
 export class AuthService {
@@ -106,6 +106,35 @@ export class AuthService {
         });
         //5 Send email (future implementation)
         console.log(`Sending OTP ${otp} to email ${existing.email}`);
+    };
+
+    resetPassword = async(data: ResetPasswordDTO) => {
+        // 1. check if user exists by email
+        const user = await findUserByEmail(data.email);
+        if(!user) {
+            throw InvalidOTPError;
+        }
+
+        // 2. find latest password reset entry for the user and check if OTP is valid
+        const passwordReset = await findLatestPasswordResetByUserId(user.id);
+        if(!passwordReset) {
+            throw InvalidOTPError;
+        }
+
+        //3 verify otp
+        const isOTPValid = hashOTP(data.otp) === passwordReset.otpHashed;
+        if(!isOTPValid || passwordReset.isExpired()) {
+            throw InvalidOTPError;
+        }
+
+        // 3. hash the new password
+        const hashedPassword = await hashPassword(data.newPassword);
+
+        // 4. update the user's password
+        await updateUserPassword(user.id, hashedPassword);
+
+        //5 update consumed_at for the password reset entry
+        await updatePasswordResetConsumedAt(passwordReset.id);
     };
 
 }
