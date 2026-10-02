@@ -51,3 +51,18 @@ export async function createUser(user:Partial<User>): Promise<User> {
 
     return toEntity(row);
 }
+
+export async function updateUserPassword(userId: number, password: string): Promise<void> {
+    await db("users")
+        .where("id", userId)
+        .update({
+            password_hash: password
+        });
+}
+
+export async function findUserByID(id: number): Promise<User | undefined> {
+    const row = await db("users").select(
+        USER_COLUMNS
+    ).where("id", id).whereNull("deleted_at").first();
+    return row ? toEntity(row) : undefined;
+}

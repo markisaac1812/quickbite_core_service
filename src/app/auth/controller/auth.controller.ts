@@ -12,6 +12,20 @@ export class AuthController {
             const data = await validateBody(RegisterDTO, req.body);
             //2 call register form service
             const result = await this.authService.register(data);
+
+            res.cookie("accessToken", result.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 15 * 60 * 1000, // 15 minutes
+            });
+            res.cookie("refreshToken", result.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                path: '/api/auth/refresh-token', // Set the path for the refresh token cookie
+            });
             //3 return response
             res.status(201).json(result);
         }
@@ -26,6 +40,20 @@ export class AuthController {
             const data = await validateBody(LoginDTO, req.body);
             //2 call login form service
             const result = await this.authService.login(data);
+
+            res.cookie("accessToken", result.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 15 * 60 * 1000, // 15 minutes
+            });
+            res.cookie("refreshToken", result.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                path: '/api/auth/refresh-token', // Set the path for the refresh token cookie
+            });
             //3 return response
             res.status(200).json(result);
         }
