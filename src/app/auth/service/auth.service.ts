@@ -1,9 +1,9 @@
 import {SystemRole} from "../../user/entity/enums";
 import {findUserExistsByEmailOrPhone, createUser, findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
 import {LoginDTO, RegisterDTO,ForgotPasswordDTO,ResetPasswordDTO} from "../dto/auth.dto";
-import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError} from "../errors";
+import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError, InvalidRefreshTokenError} from "../errors";
 import { createPasswordReset, findLatestPasswordResetByUserId, updatePasswordResetConsumedAt } from "../repository/auth.repo";
-import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP} from "../utils";
+import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP,verifyRefreshToken} from "../utils";
 
 export class AuthService {
     register = async(data: RegisterDTO )=> {
@@ -135,6 +135,21 @@ export class AuthService {
 
         //5 update consumed_at for the password reset entry
         await updatePasswordResetConsumedAt(passwordReset.id);
+    };
+
+    refreshToken = async(refreshToken: string) => {
+        // 1. verify the refresh token
+        let ref_token;
+        try {
+            ref_token = verifyRefreshToken(refreshToken);
+        } catch {
+            throw InvalidRefreshTokenError;
+        }
+
+        //2 create new access token and
+        const payload = {userId: ref_token.userId, role: ref_token.role, email: ref_token.email};
+        const accessToken = createAccessToken(payload);
+        return { accessToken };
     };
 
 }
