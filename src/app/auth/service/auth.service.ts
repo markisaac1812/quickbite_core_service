@@ -139,16 +139,13 @@ export class AuthService {
 
     refreshToken = async(refreshToken: string) => {
         // 1. verify the refresh token
-        let ref_token;
-        try {
-            ref_token = verifyRefreshToken(refreshToken);
-        } catch {
+        if(!refreshToken) {
             throw InvalidRefreshTokenError;
         }
 
         //2 create new access token and
-        const payload = {userId: ref_token.userId, role: ref_token.role, email: ref_token.email};
-        const accessToken = createAccessToken(payload);
+        const payload = verifyRefreshToken(refreshToken);
+        const accessToken = createAccessToken({userId: payload.userId, role: payload.role, email: payload.email});
         return { accessToken };
     };
 

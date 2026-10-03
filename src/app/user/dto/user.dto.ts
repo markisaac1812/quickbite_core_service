@@ -1,7 +1,12 @@
-import { IsNotEmpty, IsString } from "class-validator";
-
-export class GetMeDTO{
+import { IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+export class UpdateUserDTO{
     @IsString()
-    @IsNotEmpty()
-    id!: string;
+    @MinLength(1)
+    @IsOptional()
+    name?: string;
+
+   @IsOptional()
+   @MinLength(10)
+   @MaxLength(11)
+    phone?: string;
 }

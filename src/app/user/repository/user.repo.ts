@@ -66,3 +66,12 @@ export async function findUserByID(id: number): Promise<User | undefined> {
     ).where("id", id).whereNull("deleted_at").first();
     return row ? toEntity(row) : undefined;
 }
+
+export async function updateUser(id: number, data: Partial<{name: string, phone: string}>): Promise<User> {
+    const [row] = await db("users").where("id", id).update({
+        ...data,
+        updated_at: new Date(),
+    }).returning(USER_COLUMNS);
+
+    return toEntity(row);
+}

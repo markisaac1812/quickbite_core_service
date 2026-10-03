@@ -39,7 +39,8 @@ export const env = {
         refreshSecret: parsed.REFRESH_SECRET,
         accessExpiresIn: Number(parsed.ACCESS_EXPIRES_IN),
         refreshExpiresIn: Number(parsed.REFRESH_EXPIRES_IN)
-    }
+    },
+    isProduction: process.env.NODE_ENV === "production",
 }
 
 

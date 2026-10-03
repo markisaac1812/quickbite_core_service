@@ -1,9 +1,10 @@
-import { convertMinutesToMilliseconds,convertDaysToMilliseconds } from '../../../common/time/time.converter';
 import { validateBody } from '../../../common/validation/validate';
 import { ForgotPasswordDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from '../dto/auth.dto';
-import { InvalidRefreshTokenError } from '../errors';
 import {AuthService,authService} from '../service/auth.service';
 import {Request, Response, NextFunction} from 'express';
+import {setAuthCookies} from '../../../common/utils/cookies';
+import {env} from '../../../common/config/env';
+import {toMs} from '../../../common/utils/time';
 
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
@@ -14,20 +15,7 @@ export class AuthController {
             const data = await validateBody(RegisterDTO, req.body);
             //2 call register form service
             const result = await this.authService.register(data);
-
-            res.cookie("access_token", result.accessToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: convertMinutesToMilliseconds(15), // 15 minutes
-            });
-            res.cookie("refresh_token", result.refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: convertDaysToMilliseconds(7), // 7 days
-                path: '/api/auth/refresh',
-            });
+            setAuthCookies(res, result.accessToken, result.refreshToken);
             //3 return response
             res.status(201).json(result);
         }
@@ -42,20 +30,7 @@ export class AuthController {
             const data = await validateBody(LoginDTO, req.body);
             //2 call login form service
             const result = await this.authService.login(data);
-
-            res.cookie("access_token", result.accessToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: convertMinutesToMilliseconds(15), // 15 minutes
-            });
-            res.cookie("refresh_token", result.refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: convertDaysToMilliseconds(7), // 7 days
-                path: '/api/auth/refresh',
-            });
+            setAuthCookies(res, result.accessToken, result.refreshToken);
             //3 return response
             res.status(200).json(result);
         }
@@ -94,25 +69,14 @@ export class AuthController {
 
     refreshToken = async(req: Request, res: Response, next: NextFunction)=>{
         try{
-            //1 get refresh token from cookie
-            const refreshToken = req.cookies.refresh_token;
-            if(!refreshToken) {
-                throw InvalidRefreshTokenError;
-            }
-
-            //2 call refresh token form service
-            const result = await this.authService.refreshToken(refreshToken);
-
-            //3 set new access token in cookie
+            const result = await this.authService.refreshToken(req.cookies.refresh_token);
             res.cookie("access_token", result.accessToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: convertMinutesToMilliseconds(15), // 15 minutes
+                secure: env.isProduction,
+                maxAge: toMs(1, 'h'),
             });
-
-            //4 return response
-            res.status(200).json({ message: 'success' });
+            //3 return response
+            res.status(200).json({message: 'Token refreshed successfully.'});
         }
         catch(err){
             next(err)
