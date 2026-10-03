@@ -1,3 +1,4 @@
+import { convertMinutesToMilliseconds,convertDaysToMilliseconds } from '../../../common/time/time.converter';
 import { validateBody } from '../../../common/validation/validate';
 import { ForgotPasswordDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from '../dto/auth.dto';
 import {AuthService,authService} from '../service/auth.service';
@@ -17,13 +18,13 @@ export class AuthController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: 15 * 60 * 1000, // 15 minutes
+                maxAge: convertMinutesToMilliseconds(15), // 15 minutes
             });
             res.cookie("refreshToken", result.refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: convertDaysToMilliseconds(7), // 7 days
                 path: '/api/auth/refresh-token', // Set the path for the refresh token cookie
             });
             //3 return response
@@ -45,13 +46,13 @@ export class AuthController {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: 15 * 60 * 1000, // 15 minutes
+                maxAge: convertMinutesToMilliseconds(15), // 15 minutes
             });
             res.cookie("refreshToken", result.refreshToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: convertDaysToMilliseconds(7), // 7 days
                 path: '/api/auth/refresh-token', // Set the path for the refresh token cookie
             });
             //3 return response
