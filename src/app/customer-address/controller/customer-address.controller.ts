@@ -39,6 +39,17 @@ export class CustomerAddressController{
             next(err)
         }
     }
+
+    delete = async(req: Request, res: Response, next: NextFunction)=>{
+        try{
+            const addressId = Number(req.params.addressId);
+            await this.customerAddressService.deleteUserAddress(req.user?.userId!, addressId);
+            return res.status(200).json({
+                message: "Address deleted successfully"});
+        }catch(err){
+            next(err)
+        }
+    }
 }
 
 export const customerAddressController = new CustomerAddressController(customerAddressService);

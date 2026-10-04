@@ -88,3 +88,7 @@ export async function UpdateAddress(addressId: number, address: Partial<Customer
 
     return toEntity(row[0]);
 }
+
+export async function deleteAddress(addressId: number): Promise<void> {
+    await db("customer_addresses").where("id", addressId).del();
+}
