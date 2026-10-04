@@ -40,6 +40,13 @@ export async function findCustomerAddressByUserId(userId: number): Promise<Custo
     return row.map(toEntity);
 }
 
+export async function findAddressById(addressId: number): Promise<CustomerAddress | undefined> {
+    const row = await db("customer_addresses").select(
+        CUSTOMER_ADDRESS_COLUMNS
+    ).where("id", addressId).first();
+    return row ? toEntity(row) : undefined;
+}
+
 export async function createAddress(address: Partial<CustomerAddress>): Promise<CustomerAddress> {
     const [row] = await db("customer_addresses").insert({
         user_id: address.userId,
@@ -55,7 +62,7 @@ export async function createAddress(address: Partial<CustomerAddress>): Promise<
         is_default: address.isDefault,
     }).returning(CUSTOMER_ADDRESS_COLUMNS);
 
-    return toEntity(row);
+    return toEntity(row[0]);
 }
 
 export async function clearDefaultByUserId(userId: number): Promise<void> {
@@ -63,4 +70,21 @@ export async function clearDefaultByUserId(userId: number): Promise<void> {
         .where("user_id", userId)
         .where("is_default", true)
         .update({is_default: false});
+}
+
+export async function UpdateAddress(addressId: number, address: Partial<CustomerAddress>): Promise<CustomerAddress> {
+    const row = await db("customer_addresses").where("id", addressId).update({
+        label: address.label,
+        country: address.country,
+        city: address.city,
+        street: address.street,
+        building: address.building,
+        apartment_number: address.apartmentNumber,
+        type: address.type,
+        lat: address.lat,
+        long: address.lng,
+        is_default: address.isDefault,
+    }).returning(CUSTOMER_ADDRESS_COLUMNS);
+
+    return toEntity(row[0]);
 }

@@ -1,7 +1,7 @@
 import {Request, Response,NextFunction} from 'express';
 import {CustomerAddressService,customerAddressService} from "../service/customer-address.service";
 import {validateBody} from "../../../common/validation/validate";
-import {CreateAddressDTO} from "../dto/customer-address.dto";
+import {CreateAddressDTO, UpdateAddressDTO} from "../dto/customer-address.dto";
 
 export class CustomerAddressController{
     constructor(private readonly customerAddressService: CustomerAddressService){}
@@ -21,6 +21,19 @@ export class CustomerAddressController{
             const address = await this.customerAddressService.createUserAddress(req.user?.userId!, data);
             return res.status(201).json({
                 message: "Address created successfully",
+                data: address});
+        }catch(err){
+            next(err)
+        }
+    }
+
+    update = async(req: Request, res: Response, next: NextFunction)=>{
+        try{
+            const addressId = Number(req.params.addressId);
+            const data = await validateBody(UpdateAddressDTO, req.body);
+            const address = await this.customerAddressService.updateUserAddress(req.user?.userId!, addressId, data);
+            return res.status(200).json({
+                message: "Address updated successfully",
                 data: address});
         }catch(err){
             next(err)

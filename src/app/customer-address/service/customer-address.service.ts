@@ -1,5 +1,6 @@
-import { createAddress, findCustomerAddressByUserId,clearDefaultByUserId } from "../repository/customer-address.repo";
-import { CreateAddressDTO } from "../dto/customer-address.dto";
+import { createAddress, findCustomerAddressByUserId,clearDefaultByUserId,findAddressById,UpdateAddress } from "../repository/customer-address.repo";
+import { CreateAddressDTO, UpdateAddressDTO } from "../dto/customer-address.dto";
+import { AddressNotFoundError } from "../errors";
 
   function toResponse(address: any) {
     return {
@@ -43,6 +44,19 @@ export class CustomerAddressService {
         });
         return toResponse(address);
     }
+
+    updateUserAddress = async(userId: number, addressId: number, data: UpdateAddressDTO) => {
+        const existingAddresses =await findAddressById(addressId);
+        if(!existingAddresses || existingAddresses.userId !== userId) {
+            throw AddressNotFoundError;
+        }
+        if(data.isDefault) {
+            await clearDefaultByUserId(userId);
+        }
+        const updatedAddress = await UpdateAddress(addressId, data);
+        return toResponse(updatedAddress);
+    }
+
 }    
 
 export const customerAddressService = new CustomerAddressService();
