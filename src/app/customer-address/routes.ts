@@ -4,3 +4,4 @@ import { authenticate } from "../../common/auth/guard";
 
 export const customerAddressRouter = Router();
 customerAddressRouter.get('/', authenticate, customerAddressController.getAll);
+customerAddressRouter.post('/', authenticate, customerAddressController.create);
