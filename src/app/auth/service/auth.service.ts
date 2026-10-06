@@ -32,6 +32,8 @@ export class AuthService {
             updatedAt: now,
         })
 
+        // check if type restaurnat => call restaurant service to create restaurant
+
         // 5. create access token , refresh token
         const payload = {userId: user.id, role: data.role, email: user.email};
         const accessToken = createAccessToken(payload);

@@ -36,3 +36,10 @@ await prisma.user.findUnique({ where: { id } });
 
 . knex geenrate UP AND DOWN function . up is where you identify your table (creat table,alter table,add col etc) where down is the the revret option drop table etc .
 
+##### camelcase vs snakeCase
+- for database migrations use snakecase
+- for entity files use Camelcase
+- DTO camelcase
+- repository have toEnitty function for mapping . and make sure e.g      entityattribute: nameinDB
+- 
+

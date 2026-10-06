@@ -1,4 +1,4 @@
-import {IsEmail, MinLength, IsString, IsStrongPassword, MaxLength, IsEnum, IsNotEmpty, IS_LENGTH, length, Length} from "class-validator";
+import {IsEmail, MinLength, IsString, IsStrongPassword, MaxLength, IsEnum, IsNotEmpty, IS_LENGTH, length, Length, IsOptional, ValidateNested} from "class-validator";
 import {SystemRole} from "../../user/entity/enums";
 
 export class RegisterDTO {
@@ -27,6 +27,10 @@ export class RegisterDTO {
 
     @IsEnum(SystemRole)
     role!: SystemRole;
+
+    @IsOptional()
+    @ValidateNested()
+    restaurant?:RestaurantRegisterDTO;
 }
 
 export class LoginDTO {
@@ -63,4 +67,21 @@ export class ResetPasswordDTO {
         message: 'Password is not strong enough. It must contain at least 8 characters, one uppercase letter, one lowercase letter, one number.',
     })
     newPassword!: string;
+}
+
+export class RestaurantRegisterDTO {
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(1)
+    name!: string;
+
+    @IsString()
+    @IsOptional()
+    logoURL!: string;
+
+
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(1)
+    primaryCountry!: string;
 }
