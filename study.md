@@ -41,5 +41,5 @@ await prisma.user.findUnique({ where: { id } });
 - for entity files use Camelcase
 - DTO camelcase
 - repository have toEnitty function for mapping . and make sure e.g      entityattribute: nameinDB
-- 
+- well in create function in repo (in sql commands) ofc use the name in the database mapped to entity e.g owner_id: data.ownerId
 

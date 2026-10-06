@@ -1,5 +1,6 @@
 import {IsEmail, MinLength, IsString, IsStrongPassword, MaxLength, IsEnum, IsNotEmpty, IS_LENGTH, length, Length, IsOptional, ValidateNested} from "class-validator";
 import {SystemRole} from "../../user/entity/enums";
+import { Type } from "class-transformer";
 
 export class RegisterDTO {
     @IsEmail()
@@ -30,6 +31,7 @@ export class RegisterDTO {
 
     @IsOptional()
     @ValidateNested()
+    @Type(() => RestaurantRegisterDTO)
     restaurant?:RestaurantRegisterDTO;
 }
 

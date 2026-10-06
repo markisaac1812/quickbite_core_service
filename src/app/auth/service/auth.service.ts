@@ -1,11 +1,13 @@
+import { restaurantService, RestaurantService } from "../../restaurant/service/restaurant.service";
 import {SystemRole} from "../../user/entity/enums";
 import {findUserExistsByEmailOrPhone, createUser, findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
 import {LoginDTO, RegisterDTO,ForgotPasswordDTO,ResetPasswordDTO} from "../dto/auth.dto";
-import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError, InvalidRefreshTokenError} from "../errors";
+import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError, InvalidRefreshTokenError,RestaurantDataMissingError} from "../errors";
 import { createPasswordReset, findLatestPasswordResetByUserId, updatePasswordResetConsumedAt } from "../repository/auth.repo";
 import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP,verifyRefreshToken} from "../utils";
 
 export class AuthService {
+    constructor(private readonly restaurantService: RestaurantService) {}
     register = async(data: RegisterDTO )=> {
         if (data.role == SystemRole.SYSTEM_ADMIN) {
             throw CannotSignupAsSystemAdmin
@@ -33,6 +35,13 @@ export class AuthService {
         })
 
         // check if type restaurnat => call restaurant service to create restaurant
+        let restaurant;
+        if(data.role === SystemRole.RESTAURANT_USER) {
+            if(data.restaurant == undefined) {
+                throw RestaurantDataMissingError
+            }
+            restaurant = await this.restaurantService.createRestaurant(user.id, data.restaurant);
+        }
 
         // 5. create access token , refresh token
         const payload = {userId: user.id, role: data.role, email: user.email};
@@ -153,4 +162,4 @@ export class AuthService {
 
 }
 
-export const authService = new AuthService();
+export const authService = new AuthService(restaurantService);

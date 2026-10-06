@@ -2,9 +2,9 @@ import { RestaurantStatus } from "./enums"
 
 export class Restaurant {
     id: number
-    ownerId: string
+    ownerId: number
     name: string
-    logoUrl: string
+    logoURL: string
     status: RestaurantStatus
     primaryCountry: string
     createdAt: Date
@@ -15,7 +15,7 @@ export class Restaurant {
         this.id = data.id!
         this.ownerId = data.ownerId!
         this.name = data.name!
-        this.logoUrl = data.logoUrl ?? ""
+        this.logoURL = data.logoURL ?? ""
         this.status = data.status!
         this.primaryCountry = data.primaryCountry!
         this.createdAt = data.createdAt ?? new Date()
