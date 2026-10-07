@@ -19,7 +19,7 @@ function toEntity(row:any) {
 }
 
 export async function findAllRestaurants(): Promise<Restaurant[]> {
-    // pagination will be later
+    // pagination and filtering will be later
     const rows = await db("restaurants").select(RESTAURANT_COLUMNS);
     return rows.map(toEntity);
 }
