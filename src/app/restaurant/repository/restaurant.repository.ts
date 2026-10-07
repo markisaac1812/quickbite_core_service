@@ -1,3 +1,4 @@
+import { Knex } from "knex";
 import {db} from "../../../common/knex/knex"
 import {Restaurant} from "../entity/restaurant.entity"
 
@@ -23,8 +24,8 @@ export async function findAllRestaurants(): Promise<Restaurant[]> {
     return rows.map(toEntity);
 }
 
-export async function createRestaurant(restaurant: Partial<Restaurant>): Promise<Restaurant> {
-    const [row] = await db("restaurants").insert({
+export async function createRestaurant(restaurant: Partial<Restaurant>,conn:Knex = db): Promise<Restaurant> {
+    const [row] = await conn("restaurants").insert({
         owner_id: restaurant.ownerId,
         name: restaurant.name,
         logo_url: restaurant.logoURL,

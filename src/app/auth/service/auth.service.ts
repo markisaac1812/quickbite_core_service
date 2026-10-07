@@ -1,3 +1,4 @@
+import { db } from "../../../common/knex/knex";
 import { restaurantService, RestaurantService } from "../../restaurant/service/restaurant.service";
 import {SystemRole} from "../../user/entity/enums";
 import {findUserExistsByEmailOrPhone, createUser, findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
@@ -24,25 +25,34 @@ export class AuthService {
 
         // 4. create user
         const now = new Date();
-        const user = await createUser({
-            email: data.email,
-            phone: data.phone,
-            name: data.name,
-            passwordHash: hashedPassword,
-            systemRole: data.role,
-            createdAt: now,
-            updatedAt: now,
-        })
+        const tsx = await db.transaction()
+        let restaurant;
+        let user;
+
+        try{
+            user = await createUser({
+                email: data.email,
+                phone: data.phone,
+                name: data.name,
+                passwordHash: hashedPassword,
+                systemRole: data.role,
+                createdAt: now,
+                updatedAt: now,
+        },tsx)
 
         // check if type restaurnat => call restaurant service to create restaurant
-        let restaurant;
-        if(data.role === SystemRole.RESTAURANT_USER) {
-            if(data.restaurant == undefined) {
-                throw RestaurantDataMissingError
+            if(data.role === SystemRole.RESTAURANT_USER) {
+                if(data.restaurant == undefined) {
+                    throw RestaurantDataMissingError
+                }
+                restaurant = await this.restaurantService.createRestaurant(user.id, data.restaurant,tsx);
             }
-            restaurant = await this.restaurantService.createRestaurant(user.id, data.restaurant);
+            await tsx.commit();
+        }catch(error){
+            await tsx.rollback();
+            throw error;
         }
-
+        
         // 5. create access token , refresh token
         const payload = {userId: user.id, role: data.role, email: user.email};
         const accessToken = createAccessToken(payload);

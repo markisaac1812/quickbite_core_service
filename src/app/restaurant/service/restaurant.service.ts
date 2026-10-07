@@ -1,10 +1,11 @@
+import { Knex } from "knex";
 import {RestaurantRegisterDTO} from "../../auth/dto/auth.dto";
 import { RestaurantStatus } from "../entity/enums";
 import { Restaurant } from "../entity/restaurant.entity";
 import { createRestaurant } from "../repository/restaurant.repository";
 
 export class RestaurantService {
-    createRestaurant = async (userId:number,data: RestaurantRegisterDTO) => {
+    createRestaurant = async (userId:number,data: RestaurantRegisterDTO,trx:Knex) => {
         const now = new Date();
         const restaurant = new Restaurant({
             ownerId: userId,
@@ -16,7 +17,8 @@ export class RestaurantService {
             updatedAt: now,
             statusUpdatedAt: now,
         })
-        const result = await createRestaurant(restaurant);
+        console.log(restaurant);
+        const result = await createRestaurant(restaurant,trx);
         return result;
     }
 }
