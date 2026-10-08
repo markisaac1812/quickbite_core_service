@@ -45,7 +45,7 @@ export class AuthService {
                 if(data.restaurant == undefined) {
                     throw RestaurantDataMissingError
                 }
-                restaurant = await this.restaurantService.createRestaurant(user.id, data.restaurant,tsx);
+                restaurant = await this.restaurantService.create(user.id, data.restaurant,tsx);
             }
             await tsx.commit();
         }catch(error){

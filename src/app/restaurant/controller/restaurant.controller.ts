@@ -1,5 +1,8 @@
 import {restaurantService, RestaurantService} from "../service/restaurant.service";
 import {Request, Response, NextFunction} from 'express';
+import {validateBody} from "../../../common/validation/validate";
+import {CreateRestaurantDTO} from "../dto/restaurant.dto";
+import { SystemRole } from "../../user/entity/enums";
 
 export class RestaurantController {
     constructor(private readonly restaurantService: RestaurantService) {}
@@ -22,6 +25,17 @@ export class RestaurantController {
             next(err);
         }
     };
+
+    createWithOwner = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const userRole = req.user?.role! as SystemRole; 
+            const data = await validateBody(CreateRestaurantDTO, req.body);
+            const result = await this.restaurantService.createWithOwner(userRole, data);
+            return res.status(201).json({message: 'Restaurant and owner created successfully', data: result});
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 export const restaurantController = new RestaurantController(restaurantService);
