@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, MaxLength, MinLength, ValidateNested } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsStrongPassword, MaxLength, MinLength, ValidateNested } from "class-validator";
+import { RestaurantStatus } from "../entity/enums";
 
 export class CreateRestaurantDTO {
     @ValidateNested()
@@ -61,6 +62,11 @@ export class UpdateRestaurantDTO {
     @IsOptional()
     @IsNotEmpty()
     primaryCountry?: string;
+}
+
+export class UpdateRestaurantStatusDTO{
+    @IsEnum(RestaurantStatus)
+    status!: RestaurantStatus;
 }
     
     

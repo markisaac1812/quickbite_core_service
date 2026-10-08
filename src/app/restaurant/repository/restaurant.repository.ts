@@ -52,3 +52,11 @@ export async function updateRestaurant(id: number, data: Partial<Restaurant>): P
     }).where("id", id).returning(RESTAURANT_COLUMNS);
     return toEntity(row);
 }
+
+export async function updateRestaurantStatus(id: number, status: string){
+    const [row] = await db("restaurants").update({
+        status: status,
+        status_updated_at: new Date(),
+    }).where("id", id).returning(['id', 'status']);
+    return toEntity(row);
+} 
