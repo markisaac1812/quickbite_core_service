@@ -42,3 +42,13 @@ export async function createRestaurant(restaurant: Partial<Restaurant>,conn:Knex
     }).returning(RESTAURANT_COLUMNS);
     return toEntity(row);
 }
+
+export async function updateRestaurant(id: number, data: Partial<Restaurant>): Promise<Restaurant> {
+    const [row] = await db("restaurants").update({
+        name: data.name,
+        logo_url: data.logoURL,
+        primary_country: data.primaryCountry,
+        updated_at: data.updatedAt,
+    }).where("id", id).returning(RESTAURANT_COLUMNS);
+    return toEntity(row);
+}

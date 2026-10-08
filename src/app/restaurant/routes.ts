@@ -7,3 +7,4 @@ export const restaurantRouter = Router();
 restaurantRouter.get('/',restaurantController.getAllRestaurants);
 restaurantRouter.get('/:id',restaurantController.getRestaurantById);
 restaurantRouter.post('/',authenticate,restaurantController.createWithOwner);
+restaurantRouter.patch('/:id',authenticate,restaurantController.updateRestaurant);

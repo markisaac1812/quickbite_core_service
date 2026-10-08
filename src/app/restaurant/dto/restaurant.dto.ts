@@ -45,4 +45,22 @@ export class CreateRestaurantOwnerDTO {
         message: 'Password is not strong enough. It must contain at least 8 characters, one uppercase letter, one lowercase letter, one number.',
     })
     password!: string;
+
 }
+export class UpdateRestaurantDTO {
+    @IsString()
+    @IsOptional()
+    @IsNotEmpty()
+    name?:string;
+
+    @IsString()
+    @IsOptional()
+    logoURL?: string;
+
+    @IsString()
+    @IsOptional()
+    @IsNotEmpty()
+    primaryCountry?: string;
+}
+    
+    

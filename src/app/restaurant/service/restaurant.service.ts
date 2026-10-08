@@ -2,9 +2,9 @@ import { Knex } from "knex";
 import {RestaurantRegisterDTO} from "../../auth/dto/auth.dto";
 import { RestaurantStatus } from "../entity/enums";
 import { Restaurant } from "../entity/restaurant.entity";
-import { createRestaurant,findAllRestaurants, findRestaurantById } from "../repository/restaurant.repository";
+import { createRestaurant,findAllRestaurants, findRestaurantById, updateRestaurant } from "../repository/restaurant.repository";
 import { OwnerAlreadyExistsError, RestaurantNotFoundError } from "../errors";
-import { CreateRestaurantDTO } from "../dto/restaurant.dto";
+import { CreateRestaurantDTO, UpdateRestaurantDTO } from "../dto/restaurant.dto";
 import { SystemRole } from "../../user/entity/enums";
 import { UnAuthorisedError } from "../../../common/auth/errors";
 import { createUser, findUserExistsByEmailOrPhone } from "../../user/repository/user.repo";
@@ -100,6 +100,29 @@ export class RestaurantService {
             throw error;
         }
     }
-   }
+
+    updateRestaurant = async (userRole: SystemRole, userID:Number, id: number, data: UpdateRestaurantDTO) => {
+        // finds the restaurant with the given id
+        const restaurant = await findRestaurantById(id);
+        if(!restaurant) {
+            throw RestaurantNotFoundError;
+        }
+
+        //checks the caller is owner or the admin
+        if(userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userID)) {
+            throw UnAuthorisedError;
+        }
+
+        const now = new Date();
+        const updatedRestaurant = await updateRestaurant(id, {
+            name: data.name ,
+            logoURL: data.logoURL ,
+            primaryCountry: data.primaryCountry,
+            updatedAt: now,
+        });
+
+        return updatedRestaurant;
+    }
+}    
 
 export const restaurantService = new RestaurantService();
