@@ -5,3 +5,4 @@ import { authenticate } from "../../common/auth/guard";
 export const restaurantRouter = Router();
 
 restaurantRouter.get('/',restaurantController.getAllRestaurants);
+restaurantRouter.get('/:id',restaurantController.getRestaurantById);

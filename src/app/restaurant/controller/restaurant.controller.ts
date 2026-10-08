@@ -12,6 +12,16 @@ export class RestaurantController {
             next(err);
         }
     }
+
+    getRestaurantById = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = Number(req.params.id);
+            const restaurant = await this.restaurantService.getRestaurantById(id);
+            return res.status(200).json({data: restaurant});
+        } catch (err) {
+            next(err);
+        }
+    };
 }
 
 export const restaurantController = new RestaurantController(restaurantService);
