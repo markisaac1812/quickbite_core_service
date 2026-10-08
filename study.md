@@ -48,3 +48,6 @@ await prisma.user.findUnique({ where: { id } });
 IsOptional(): The field is allowed to be missing (undefined) or null. If it is, the other validators on that property are skipped.
 IsNotEmpty():If the field is provided, it must not be an empty string ("").
 
+
+###### migrations command
+npx tsx ./node_modules/knex/bin/cli.js migrate:latest --knexfile src/common/knex/knexfile.ts
