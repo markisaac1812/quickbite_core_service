@@ -47,3 +47,25 @@ export async function createBranch(branch: Partial<Branch>,conn: Knex = db): Pro
     return toEntity(row);
 }
 
+export async function findNearbyBranches(lat: number, lng: number): Promise<Branch[]> {
+    const result = await db.raw(`
+       SELECT 
+       b.id,
+       b.restaurant_id,
+       b.address_text,
+       b.label,
+       b.lat,
+       b.lng,
+       b.is_active,
+       b.accept_orders,
+       b.currency,
+       r.name,
+       r.logo_url
+       FROM restaurant_branches b JOIN restaurants r ON  b.restaurant_id = r.id
+       WHERE b.is_active = true AND r.status ='active'
+       AND ST_DWithin(b.location, ST_MakePoint(?, ?)::geography, b.delivery_radius*1000)
+    `,[lng, lat]);
+
+    return result.rows;
+}
+

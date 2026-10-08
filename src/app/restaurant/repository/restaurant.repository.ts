@@ -24,6 +24,11 @@ export async function findAllRestaurants(): Promise<Restaurant[]> {
     return rows.map(toEntity);
 }
 
+export async function findRestaurantById(id: number): Promise<Restaurant> {
+    const row = await db("restaurants").select(RESTAURANT_COLUMNS).where("id", id).first();
+    return toEntity(row);
+}
+
 export async function createRestaurant(restaurant: Partial<Restaurant>,conn:Knex = db): Promise<Restaurant> {
     const [row] = await conn("restaurants").insert({
         owner_id: restaurant.ownerId,
