@@ -43,3 +43,8 @@ await prisma.user.findUnique({ where: { id } });
 - repository have toEnitty function for mapping . and make sure e.g      entityattribute: nameinDB
 - well in create function in repo (in sql commands) ofc use the name in the database mapped to entity e.g owner_id: data.ownerId
 
+
+###### IsNotEmpty() vs IsOptional()
+IsOptional(): The field is allowed to be missing (undefined) or null. If it is, the other validators on that property are skipped.
+IsNotEmpty():If the field is provided, it must not be an empty string ("").
+
