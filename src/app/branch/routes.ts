@@ -4,5 +4,5 @@ import { authenticate } from "../../common/auth/guard";
 
 export const branchRouter = Router();
 
-branchRouter.post("/restaurants/:restaurantId",authenticate, branchController.create);
+branchRouter.post("/restaurants/:restaurantId/branches",authenticate, branchController.create);
 branchRouter.get("/branches/nearby", branchController.findNearby);

@@ -40,6 +40,8 @@ export async function createBranch(branch: Partial<Branch>,conn: Knex = db): Pro
             opens_at: branch.opensAt,
             closes_at: branch.closesAt,
             accept_orders: branch.acceptOrders,
+            created_at: branch.createdAt,
+            updated_at: branch.updatedAt,
             delivery_radius: branch.deliveryRadius,
             currency: branch.currency,
             commission: branch.commission
