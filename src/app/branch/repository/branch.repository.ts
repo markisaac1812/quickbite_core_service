@@ -97,7 +97,7 @@ export async function updateBranch(id: number, data: Partial<Branch>): Promise<B
             opens_at: data.opensAt,
             closes_at: data.closesAt,
             accept_orders: data.acceptOrders,
-            updated_at: data.updatedAt,
+            updated_at: Date.now(),
             delivery_radius: data.deliveryRadius,
             currency: data.currency,
         })
