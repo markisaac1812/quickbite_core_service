@@ -78,3 +78,13 @@ export async function findBranchByRestaurantId(id: number): Promise<Branch[]> {
     return rows.map(toEntity);
 }
 
+export async function findBranchById(id: number): Promise<Branch | undefined> {
+    const row = await db('restaurant_branches')
+        .select(BRANCH_COLUMNS)
+        .where('id', id)
+        .first();
+    return row ? toEntity(row) : undefined;
+}
+
+
+
