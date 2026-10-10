@@ -1,9 +1,9 @@
-import { findNearbyBranches,createBranch } from "../repository/branch.repository";
-import { Branch } from "../entity/branch.entity";
+import { findNearbyBranches,createBranch,findBranchByRestaurantId } from "../repository/branch.repository";
 import {SystemRole} from "../../user/entity/enums";
 import {CreateBranchDTO} from "../dto/branch.dto";
 import {findRestaurantById} from "../../restaurant/repository/restaurant.repository";
 import {UnAuthorisedError} from "../../../common/auth/errors";
+import {RestaurantNotFoundError} from "../../restaurant/errors";
 
 export class BranchService {
 
@@ -40,6 +40,14 @@ export class BranchService {
         });
 
         return branch;
+    }
+
+    findByRestaurantId = async (restaurantId: number) => {
+        const restaurant = await findRestaurantById(restaurantId);
+        if(!restaurant){
+            throw RestaurantNotFoundError;
+        }
+        return await findBranchByRestaurantId(restaurantId);
     }
 }
 

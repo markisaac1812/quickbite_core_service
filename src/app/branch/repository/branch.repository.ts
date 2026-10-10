@@ -71,3 +71,10 @@ export async function findNearbyBranches(lat: number, lng: number): Promise<Bran
     return result.rows;
 }
 
+export async function findBranchByRestaurantId(id: number): Promise<Branch[]> {
+    const rows = await db('restaurant_branches')
+    .select(BRANCH_COLUMNS)
+    .where('restaurant_id', id);
+    return rows.map(toEntity);
+}
+
