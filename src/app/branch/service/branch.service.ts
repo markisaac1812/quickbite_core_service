@@ -1,6 +1,6 @@
-import { findNearbyBranches,createBranch,findBranchByRestaurantId, findBranchById, updateBranch } from "../repository/branch.repository";
+import { findNearbyBranches,createBranch,findBranchByRestaurantId, findBranchById, updateBranch, updateBranchStatus} from "../repository/branch.repository";
 import {SystemRole} from "../../user/entity/enums";
-import {CreateBranchDTO} from "../dto/branch.dto";
+import {CreateBranchDTO, UpdateBranchStatusDTO} from "../dto/branch.dto";
 import {findRestaurantById} from "../../restaurant/repository/restaurant.repository";
 import {UnAuthorisedError} from "../../../common/auth/errors";
 import {RestaurantNotFoundError} from "../../restaurant/errors";
@@ -70,6 +70,22 @@ export class BranchService {
         }
 
         const updatedBranch = await updateBranch(branchId, data);
+        return updatedBranch;
+    }
+
+    updateStatus = async (branchId: number,userRole: SystemRole, data: UpdateBranchStatusDTO) => {
+        // find branch by id
+        const branch = await findBranchById(branchId);
+        if(!branch){
+            throw BranchNotFoundError;
+        }
+
+        // checks ownership of restaurant
+        if(userRole != SystemRole.SYSTEM_ADMIN){
+            throw UnAuthorisedError
+        }
+
+        const updatedBranch = await updateBranchStatus(branchId, data);
         return updatedBranch;
     }
 }

@@ -105,3 +105,15 @@ export async function updateBranch(id: number, data: Partial<Branch>): Promise<B
         .returning(BRANCH_COLUMNS);
     return toEntity(row);
 }
+
+export async function updateBranchStatus(id: number, data: {isActive?: boolean,commission?: number}): Promise<Branch> {
+    const [row] = await db('restaurant_branches')
+        .update({
+            is_active: data.isActive,
+            commission: data.commission,
+            updated_at: new Date(),
+        })
+        .where('id', id)
+        .returning(BRANCH_COLUMNS);
+    return toEntity(row);
+}

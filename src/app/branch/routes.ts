@@ -8,3 +8,4 @@ branchRouter.post("/restaurants/:restaurantId/branches",authenticate, branchCont
 branchRouter.get("/branches/nearby", branchController.findNearby);
 branchRouter.get("/restaurants/:restaurantId/branches", branchController.findByRestaurantId);
 branchRouter.patch("/branches/:branchId",authenticate, branchController.update);
+branchRouter.patch("/branches/:id/status",authenticate, branchController.updateStatus);

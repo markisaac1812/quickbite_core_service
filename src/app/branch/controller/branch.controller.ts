@@ -1,6 +1,6 @@
 import {Request,Response,NextFunction} from "express";
 import {branchService, BranchService} from "../service/branch.service";
-import {CreateBranchDTO, UpdateBranchDTO} from "../dto/branch.dto";
+import {CreateBranchDTO, UpdateBranchDTO, UpdateBranchStatusDTO} from "../dto/branch.dto";
 import { validateBody } from "../../../common/validation/validate";
 import { SystemRole } from "../../user/entity/enums";
 
@@ -56,6 +56,21 @@ export class BranchController {
             const updatedBranch = await this.branchService.update(branchId, userId, userRole, data);
             res.status(200).json({
                 message: "Branch updated successfully",
+                data: updatedBranch
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    updateStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const branchId = Number(req.params.id);
+            const data = await validateBody(UpdateBranchStatusDTO, req.body);
+            const userRole = req.user?.role as SystemRole;
+            const updatedBranch = await this.branchService.updateStatus(branchId, userRole, data);
+            res.status(200).json({
+                message: "Branch status updated successfully",
                 data: updatedBranch
             });
         } catch (error) {
