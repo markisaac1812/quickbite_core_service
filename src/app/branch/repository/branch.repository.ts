@@ -86,5 +86,22 @@ export async function findBranchById(id: number): Promise<Branch | undefined> {
     return row ? toEntity(row) : undefined;
 }
 
-
-
+export async function updateBranch(id: number, data: Partial<Branch>): Promise<Branch> {
+    const [row] = await db('restaurant_branches')
+        .update({
+            address_text: data.addressText,
+            label: data.label,
+            lat: data.lat,
+            lng: data.lng,
+            is_active: data.isActive,
+            opens_at: data.opensAt,
+            closes_at: data.closesAt,
+            accept_orders: data.acceptOrders,
+            updated_at: data.updatedAt,
+            delivery_radius: data.deliveryRadius,
+            currency: data.currency,
+        })
+        .where('id', id)
+        .returning(BRANCH_COLUMNS);
+    return toEntity(row);
+}
