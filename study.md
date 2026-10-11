@@ -52,3 +52,8 @@ IsNotEmpty():If the field is provided, it must not be an empty string ("").
 ###### migrations command
 npx tsx ./node_modules/knex/bin/cli.js migrate:latest --knexfile src/common/knex/knexfile.ts
 npx tsx ./node_modules/knex/bin/cli.js migrate:make create_user_table --knexfile src/common/knex/knexfile.ts
+
+
+###### TRIGGER IN postgres
+A trigger in PostgreSQL is something that automatically executes a function when a specific event happens in a database table, such as inserting, updating, or deleting a row.
+In your code, the trigger automatically creates a product_branch_details record for every branch belonging to the restaurant whenever a new product is created.
