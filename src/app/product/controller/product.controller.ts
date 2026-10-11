@@ -36,6 +36,16 @@ export class ProductController{
             next(err);
         }
     }
+
+    findProductById = async(req:Request, res:Response, next:NextFunction) => {
+        try{
+            const productId = Number(req.params.productId);
+            const product = await this.productService.findProductById(productId);
+            return res.status(200).json({data: product});
+        }catch(err){
+            next(err);
+        }
+    }
 }
 
 export const productController = new ProductController(productService);

@@ -6,4 +6,5 @@ export const productRouter = Router();
 
 productRouter.get('/restaurants/:restaurantId/categories', productController.findCategories);
 productRouter.get('/branches/:branchId/products', productController.findProductsByBranch);
+productRouter.get('/products/:productId', productController.findProductById);
 productRouter.get('/restaurants/:restaurantId/products', authenticate, productController.findProductByrestaurantId);

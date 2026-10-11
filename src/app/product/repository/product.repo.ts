@@ -56,3 +56,12 @@ export async function findProductByrestaurantId(restaurantId: number): Promise<P
         .whereNull("deleted_at");
     return rows.map(toEntity);
 }
+
+export async function findProductById(productId: number): Promise<Product | undefined> {
+    const row = await db("products")
+        .select(PRODUCT_COLS)
+        .where("id", productId)
+        .whereNull("deleted_at")
+        .first();
+    return row ? toEntity(row) : undefined;
+}

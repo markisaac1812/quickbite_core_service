@@ -3,9 +3,10 @@ import { RestaurantNotFoundError } from "../../restaurant/errors";
 import { findCategoriesByRestaurantId } from "../repository/product-category.repo";
 import {findBranchById} from "../../branch/repository/branch.repository";
 import { BranchNotFoundError } from "../../branch/erros";
-import { findProductByrestaurantId, findProductsByBranch } from "../repository/product.repo";
+import { findProductById, findProductByrestaurantId, findProductsByBranch } from "../repository/product.repo";
 import { SystemRole } from "../../user/entity/enums";
 import { UnAuthorisedError } from "../../../common/auth/errors";
+import { ProductNotFoundError } from "../error";
 
 export class ProductService {
     async findCategoriesByRestaurantId(restaurantId: number) {
@@ -33,6 +34,14 @@ export class ProductService {
                     throw UnAuthorisedError;
                 };
         return await findProductByrestaurantId(restaurantId);
+    }
+
+    async findProductById(productId: number) {
+        const product = await findProductById(productId);
+        if(!product) {
+            throw ProductNotFoundError;
+        }
+        return product;
     }
 }
 
