@@ -16,6 +16,10 @@ export class BranchService {
     create = async (restaurantId: number, userId: number, userRole: SystemRole, data: CreateBranchDTO) => {
         const restaurant = await findRestaurantById(restaurantId);
 
+        if(!restaurant){
+            throw RestaurantNotFoundError;
+        }
+
         // if the logged in user is nto system admin and not the owner of restaurant then throw unauthorised err
         if(userRole != SystemRole.SYSTEM_ADMIN && (Number(restaurant.ownerId) !== Number(userId)) ){
             throw UnAuthorisedError
