@@ -13,6 +13,17 @@ export class ProductController{
             next(err);
         }
     }
-}    
+
+    findProductsByBranch = async(req:Request, res:Response, next:NextFunction) => {
+        try{
+            const branchId = Number(req.params.branchId);
+            const products = await this.productService.findProductsByBranch(branchId);
+            return res.status(200).json({data: products});
+        }catch(err){
+            next(err);
+        }
+    }
+
+}
 
 export const productController = new ProductController(productService);
