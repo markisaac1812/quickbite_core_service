@@ -51,3 +51,4 @@ IsNotEmpty():If the field is provided, it must not be an empty string ("").
 
 ###### migrations command
 npx tsx ./node_modules/knex/bin/cli.js migrate:latest --knexfile src/common/knex/knexfile.ts
+npx tsx ./node_modules/knex/bin/cli.js migrate:make create_user_table --knexfile src/common/knex/knexfile.ts
