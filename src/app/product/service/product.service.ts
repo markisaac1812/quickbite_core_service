@@ -3,7 +3,9 @@ import { RestaurantNotFoundError } from "../../restaurant/errors";
 import { findCategoriesByRestaurantId } from "../repository/product-category.repo";
 import {findBranchById} from "../../branch/repository/branch.repository";
 import { BranchNotFoundError } from "../../branch/erros";
-import { findProductsByBranch } from "../repository/product.repo";
+import { findProductByrestaurantId, findProductsByBranch } from "../repository/product.repo";
+import { SystemRole } from "../../user/entity/enums";
+import { UnAuthorisedError } from "../../../common/auth/errors";
 
 export class ProductService {
     async findCategoriesByRestaurantId(restaurantId: number) {
@@ -20,6 +22,17 @@ export class ProductService {
             throw BranchNotFoundError;
         }
         return await findProductsByBranch(branchId);
+    }
+
+    async findProductByrestaurantId(restaurantId: number,userId: number,userRole: SystemRole) {
+        const restaurant = await findRestaurantById(restaurantId);
+        if(!restaurant) {
+            throw RestaurantNotFoundError;
+        }
+        if(userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
+                    throw UnAuthorisedError;
+                };
+        return await findProductByrestaurantId(restaurantId);
     }
 }
 

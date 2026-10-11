@@ -1,3 +1,4 @@
+import { SystemRole } from '../../user/entity/enums';
 import { productService, ProductService } from '../service/product.service';
 import { Request, Response, NextFunction } from 'express';
 
@@ -24,6 +25,17 @@ export class ProductController{
         }
     }
 
+    findProductByrestaurantId = async(req:Request, res:Response, next:NextFunction) => {
+        try{
+            const restaurantId = Number(req.params.restaurantId);
+            const userId = Number(req.user?.userId);
+            const userRole = req.user?.role as SystemRole;
+            const products = await this.productService.findProductByrestaurantId(restaurantId, userId, userRole);
+            return res.status(200).json({data: products});
+        }catch(err){
+            next(err);
+        }
+    }
 }
 
 export const productController = new ProductController(productService);

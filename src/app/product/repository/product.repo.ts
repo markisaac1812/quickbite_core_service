@@ -48,3 +48,11 @@ export async function findProductsByBranch(branchId: number) {
         isAvailable: row.is_available,
     }));
 }
+
+export async function findProductByrestaurantId(restaurantId: number): Promise<Product[]> {
+    const rows = await db("products")
+        .select(PRODUCT_COLS)
+        .where("restaurant_id", restaurantId)
+        .whereNull("deleted_at");
+    return rows.map(toEntity);
+}
