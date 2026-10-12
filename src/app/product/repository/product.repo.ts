@@ -79,3 +79,14 @@ export async function createProduct(data: Partial<Product>): Promise<Product> {
     }).returning(PRODUCT_COLS);
     return toEntity(row);
 }
+
+export async function updateProduct(id: number, data: Record<string, any>): Promise<Product> {
+    const [row] = await db("products").where("id", id).update({
+        name: data.name,
+        description: data.description,
+        image_url: data.imageUrl,
+        category_id: data.categoryId,
+        updated_at: new Date(),
+    }).returning(PRODUCT_COLS);
+    return toEntity(row);
+}

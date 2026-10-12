@@ -1,5 +1,5 @@
 import { SystemRole } from '../../user/entity/enums';
-import { CreateProductDTO } from '../dto/product.dto';
+import { CreateProductDTO, UpdateProductDTO } from '../dto/product.dto';
 import { productService, ProductService } from '../service/product.service';
 import { Request, Response, NextFunction } from 'express';
 import {validateBody} from '../../../common/validation/validate';
@@ -63,6 +63,22 @@ export class ProductController{
             next(err);
         }
     }
-}
 
+    updateProduct = async(req:Request, res:Response, next:NextFunction) => {
+        try{
+            const data = await validateBody(UpdateProductDTO, req.body);
+            const branchId = req.query.branchId ? Number(req.query.branchId) : undefined;
+            const productId = Number(req.params.productId);
+            const userId = Number(req.user?.userId);
+            const userRole = req.user?.role as SystemRole;
+            const product = await this.productService.update(productId,userId, userRole,data,branchId);
+            return res.status(200).json({
+                message: 'Product updated successfully',
+                data: product});
+        }
+        catch(err){
+            next(err);
+        }
+    }
+}
 export const productController = new ProductController(productService);

@@ -9,3 +9,4 @@ productRouter.get('/branches/:branchId/products', productController.findProducts
 productRouter.get('/products/:productId', productController.findProductById);
 productRouter.get('/restaurants/:restaurantId/products', authenticate, productController.findProductByrestaurantId);
 productRouter.post('/restaurants/:restaurantId/products', authenticate, productController.createProduct);
+productRouter.patch('/products/:id?branchId', authenticate, productController.updateProduct);
