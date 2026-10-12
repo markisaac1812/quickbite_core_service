@@ -65,3 +65,17 @@ export async function findProductById(productId: number): Promise<Product | unde
         .first();
     return row ? toEntity(row) : undefined;
 }
+
+export async function createProduct(data: Partial<Product>): Promise<Product> {
+    const now = new Date();
+    const [row] = await db("products").insert({
+        name: data.name,
+        description: data.description,
+        image_url: data.imageUrl,
+        restaurant_id: data.restaurantId,
+        category_id: data.categoryId,
+        created_at: now,
+        updated_at: now,
+    }).returning(PRODUCT_COLS);
+    return toEntity(row);
+}

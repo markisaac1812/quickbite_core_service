@@ -29,9 +29,12 @@ export async function findCategoryByName(restaurantId: number, name: string): Pr
 }
 
 export async function createCategory(restaurantId: number, name: string, conn: Knex = db): Promise<ProductCategory> {
+    const now = new Date();
     const [row] = await conn("product_categories").insert({
         restaurant_id: restaurantId,
         name,
+        created_at: now,
+        updated_at: now
     }).returning(PRODUCT_CATEGORY_COLS);
     return toEntity(row);
 }

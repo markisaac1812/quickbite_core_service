@@ -8,3 +8,4 @@ productRouter.get('/restaurants/:restaurantId/categories', productController.fin
 productRouter.get('/branches/:branchId/products', productController.findProductsByBranch);
 productRouter.get('/products/:productId', productController.findProductById);
 productRouter.get('/restaurants/:restaurantId/products', authenticate, productController.findProductByrestaurantId);
+productRouter.post('/restaurants/:restaurantId/products', authenticate, productController.createProduct);

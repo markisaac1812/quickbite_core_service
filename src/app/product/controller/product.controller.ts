@@ -1,6 +1,8 @@
 import { SystemRole } from '../../user/entity/enums';
+import { CreateProductDTO } from '../dto/product.dto';
 import { productService, ProductService } from '../service/product.service';
 import { Request, Response, NextFunction } from 'express';
+import {validateBody} from '../../../common/validation/validate';
 
 export class ProductController{
     constructor(private readonly productService: ProductService) {}
@@ -42,6 +44,21 @@ export class ProductController{
             const productId = Number(req.params.productId);
             const product = await this.productService.findProductById(productId);
             return res.status(200).json({data: product});
+        }catch(err){
+            next(err);
+        }
+    }
+
+    createProduct = async(req:Request, res:Response, next:NextFunction) => {
+        try{
+            const data = await validateBody(CreateProductDTO, req.body);
+            const restaurantId = Number(req.params.restaurantId);
+            const userId = Number(req.user?.userId);
+            const userRole = req.user?.role as SystemRole;
+            const product = await this.productService.createProduct(data, restaurantId, userId, userRole);
+            return res.status(201).json({
+                message: 'Product created successfully',
+                data: product});
         }catch(err){
             next(err);
         }
