@@ -1,18 +1,11 @@
-export class Role {
-    id: number;
-    name: string;
-    displayName: string;
-    description?: string;
+export class MemberBranch {
+    memberId: number;
+    branchId: number;
     createdAt: Date;
-    updatedAt: Date;
 
-    constructor(data: Partial<Role>) {
-        this.id = data.id!;
-        this.name = data.name!;
-        this.displayName = data.displayName!;
-        this.description = data.description;
+    constructor(data: Partial<MemberBranch>) {
+        this.memberId = data.memberId!;
+        this.branchId = data.branchId!;
         this.createdAt = data.createdAt ?? new Date();
-        this.updatedAt = data.updatedAt ?? new Date();
     }
-
 }
