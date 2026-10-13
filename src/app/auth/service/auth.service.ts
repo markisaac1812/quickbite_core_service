@@ -1,4 +1,5 @@
 import { db } from "../../../common/knex/knex";
+import { activateMemberByUserId } from "../../rbac/repository/restaurant_member.repo";
 import { restaurantService, RestaurantService } from "../../restaurant/service/restaurant.service";
 import {SystemRole} from "../../user/entity/enums";
 import {findUserExistsByEmailOrPhone, createUser, findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
@@ -156,6 +157,7 @@ export class AuthService {
 
         //5 update consumed_at for the password reset entry
         await updatePasswordResetConsumedAt(passwordReset.id);
+        return user;
     };
 
     refreshToken = async(refreshToken: string) => {
@@ -170,6 +172,11 @@ export class AuthService {
         return { accessToken };
     };
 
+     acceptInvite = async(data: ResetPasswordDTO )=> {
+        const user = await this.resetPassword(data)
+        // activate member
+        await activateMemberByUserId(user.id)
+    }
 }
 
 export const authService = new AuthService(restaurantService);
