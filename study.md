@@ -72,3 +72,8 @@ npx tsx ./node_modules/knex/bin/cli.js migrate:make create_user_table --knexfile
 ###### TRIGGER IN postgres
 A trigger in PostgreSQL is something that automatically executes a function when a specific event happens in a database table, such as inserting, updating, or deleting a row.
 In your code, the trigger automatically creates a product_branch_details record for every branch belonging to the restaurant whenever a new product is created.
+
+
+###### CACHE IN APP VS REDIS
+in creating rbac middleware to find for each request what is roles and permissions associated it with , it is very headache to request db each time => use cache 
+now we basically have 3 roles owner,branch_manager,staff so no need to use cache db such as redis , caching in the application is perfectly fine here
