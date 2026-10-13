@@ -1,5 +1,4 @@
 import { CreateMemberDTO } from "../dto/member.dto";
-import { RestaurantMember } from "../entity/restaurant-member.entity";
 import {CannotCreateOwnerUserError, RoleNotFoundError} from "../errors";
 import {UserAlreadyExistsError} from "../../auth/errors";
 import { findUserByEmail,createUser } from "../../user/repository/user.repo";
@@ -89,5 +88,7 @@ export class MemberService {
         }
     }
 }
+
+export const memberService = new MemberService();
        
     
