@@ -77,3 +77,9 @@ In your code, the trigger automatically creates a product_branch_details record 
 ###### CACHE IN APP VS REDIS
 in creating rbac middleware to find for each request what is roles and permissions associated it with , it is very headache to request db each time => use cache 
 now we basically have 3 roles owner,branch_manager,staff so no need to use cache db such as redis , caching in the application is perfectly fine here
+
+
+###### REST CONVENTIALS
+in your apis desing alwyas start from higher entity to entity 
+e.g api/restaurants/:restaurantID/branches/:branchesID/members -> TRUE
+    api/branches/:brnachesID/restaurants/:restaurantID -> FALSE
