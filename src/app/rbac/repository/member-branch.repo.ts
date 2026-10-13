@@ -26,4 +26,9 @@ export async function setMemberBranches(memberId: number, rows: MemberBranch[], 
     }
 }
 
+export async function findBranchIdsByMemberId(memberId: number): Promise<number[]> {
+    const rows = await db("member_branches").select("branch_id").where("member_id", memberId);
+    return rows?.map(row => row.branch_id); // [{branch_id:2}, {branch_id:3}] -> [2,3]
+}
+
 

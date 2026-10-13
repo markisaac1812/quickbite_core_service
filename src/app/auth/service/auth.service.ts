@@ -1,5 +1,6 @@
 import { db } from "../../../common/knex/knex";
-import { activateMemberByUserId } from "../../rbac/repository/restaurant_member.repo";
+import { findBranchIdsByMemberId } from "../../rbac/repository/member-branch.repo";
+import { activateMemberByUserId, findRestaurantMemberWithRole } from "../../rbac/repository/restaurant_member.repo";
 import { restaurantService, RestaurantService } from "../../restaurant/service/restaurant.service";
 import {SystemRole} from "../../user/entity/enums";
 import {findUserExistsByEmailOrPhone, createUser, findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
@@ -87,8 +88,21 @@ export class AuthService {
             throw InvalidCredentialsError;
         }
 
+        let restaurantMemberInfo = null
+        if(existing.systemRole == SystemRole.RESTAURANT_USER) {
+            const memberData =  await findRestaurantMemberWithRole(existing.id);
+            const branchIds = await findBranchIdsByMemberId(memberData.member.id);
+            if(memberData)  {
+                restaurantMemberInfo = {
+                    restaurantId: memberData.member.restaurantId,
+                    restaurantRole: memberData.roleName,
+                    branchIds
+                }
+            }
+        }
+
         // 3. create access token , refresh token
-        const payload = {userId: existing.id, role: existing.systemRole, email: existing.email};
+        const payload = {userId: existing.id, role: existing.systemRole, email: existing.email,...restaurantMemberInfo};
         const accessToken = createAccessToken(payload);
         const refreshToken = createRefreshToken(payload);
 

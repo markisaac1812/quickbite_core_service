@@ -37,3 +37,17 @@ export async function activateMemberByUserId(userId:number, conn: Knex = db): Pr
         updated_at: new Date()}
     )
 }
+
+export async function findRestaurantMemberWithRole(userId: number): Promise<{member: RestaurantMember; roleName:string;}> {
+    const row = await db("restaurant_members as rm").select(
+        "rm.restaurant_id",
+        "rm.id",
+        "r.name as roleName"
+    ).leftJoin("roles as r","rm.role_id","r.id")
+        .where("rm.user_id", userId)
+        .andWhere("rm.status",MemberStatus.ACTIVE).first();
+    return {
+        member: toEntity(row),
+        roleName: row.roleName,
+    };
+}
