@@ -6,6 +6,7 @@ import { customerAddressRouter } from "./app/customer-address/routes"
 import { restaurantRouter } from "./app/restaurant/routes"
 import { branchRouter } from "./app/branch/routes"
 import { productRouter } from "./app/product/routes"
+import { rbacRouter } from "./app/rbac/routes"
 
 export const routes = Router()
 
@@ -16,3 +17,4 @@ routes.use('/customer/addresses',customerAddressRouter)
 routes.use('/restaurants', restaurantRouter)
 routes.use('/', branchRouter)
 routes.use('/',productRouter)
+routes.use('/', rbacRouter)

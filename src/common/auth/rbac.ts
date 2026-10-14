@@ -60,7 +60,7 @@ export function requireRestaurantMember(paramName: string= 'restaurantId') {
 
         if(Number(req.user?.restaurantId) !== Number(restaurantId)) {
             if(req.user?.role == SystemRole.SYSTEM_ADMIN) {
-                next();
+                return next();
             }
             return res.status(403).json({
                 error: "Permission denied",

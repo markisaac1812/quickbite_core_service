@@ -57,7 +57,7 @@ export class MemberService {
                 }, trx
             )
             // check that those branches belong to that restaurant
-            const rows = data.branchIds.map(branchId => new MemberBranch({
+            const rows = (data.branchIds ?? []).map(branchId => new MemberBranch({
                 branchId: branchId,
                 memberId: member.id,
                 createdAt: now,
