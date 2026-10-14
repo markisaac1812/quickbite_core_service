@@ -83,3 +83,13 @@ now we basically have 3 roles owner,branch_manager,staff so no need to use cache
 in your apis desing alwyas start from higher entity to entity 
 e.g api/restaurants/:restaurantID/branches/:branchesID/members -> TRUE
     api/branches/:brnachesID/restaurants/:restaurantID -> FALSE
+
+###### HOW ALL MIDDLEWARES WORK TOGETHER
+Route (express router)
+  -> authenticate (verify JWT, set req.user)
+  -> requireRestaurantMember (verify user belongs to restaurant)
+  -> requireBranchAccess (verify user has access to branch)
+  -> rbac (verify user's role has the required permission)
+  -> Controller (validates DTO, extracts params)
+    -> Service (business logic, orchestrates repos)
+      -> Repository (DB queries via knex)    
