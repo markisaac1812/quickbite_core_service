@@ -5,7 +5,7 @@ import { findUserByEmail,createUser } from "../../user/repository/user.repo";
 import {findRoleByName} from "../repository/role.repo";
 import{db} from "../../../common/knex/knex";
 import {SystemRole} from "../../user/entity/enums";
-import { createRestaurantMember, findMemberWithRoleName,updateMember,deleteMember } from "../repository/restaurant_member.repo";
+import { createRestaurantMember, findMemberWithRoleName,updateMember,deleteMember,findMembersByRestaurantId } from "../repository/restaurant_member.repo";
 import { MemberStatus } from "../entity/enums";
 import { setMemberBranches,countBranchesByIdsAndRestaurant } from "../repository/member-branch.repo";
 import { MemberBranch } from "../entity/member-branch.entity";
@@ -87,6 +87,11 @@ export class MemberService {
             await trx.rollback();
             throw err;
         }
+    }
+
+    async listMembers(restaurantId: number) {
+        const members = await findMembersByRestaurantId(restaurantId);
+        return {data: members};
     }
 
     async updateMember(restaurantId: number, memberId: number, data: UpdateMemberDTO) {
