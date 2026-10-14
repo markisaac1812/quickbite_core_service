@@ -24,7 +24,7 @@ export function rbac(options: RBACOptions) {
             const {resource, action, allowSystemAdmin = true} = options;
 
             // if he is a system admin -> bypass
-            if (!allowSystemAdmin && req.user.role == SystemRole.SYSTEM_ADMIN) {
+            if (allowSystemAdmin && req.user.role == SystemRole.SYSTEM_ADMIN) {
                 return next();
             }
             // if restaurant user
