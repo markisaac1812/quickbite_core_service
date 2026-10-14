@@ -1,17 +1,18 @@
-import { CreateMemberDTO } from "../dto/member.dto";
-import {CannotCreateOwnerUserError, RoleNotFoundError} from "../errors";
+import { CreateMemberDTO, UpdateMemberDTO,UpdateMemberBranchesDTO } from "../dto/member.dto";
+import {CannotCreateOwnerUserError, RoleNotFoundError,MemberNotFoundError,CannotDeleteOwnerError,AssignBranchesToOwnerError,InvalidBranchIdsError} from "../errors";
 import {UserAlreadyExistsError} from "../../auth/errors";
 import { findUserByEmail,createUser } from "../../user/repository/user.repo";
 import {findRoleByName} from "../repository/role.repo";
 import{db} from "../../../common/knex/knex";
 import {SystemRole} from "../../user/entity/enums";
-import { createRestaurantMember } from "../repository/restaurant_member.repo";
+import { createRestaurantMember, findMemberWithRoleName,updateMember,deleteMember } from "../repository/restaurant_member.repo";
 import { MemberStatus } from "../entity/enums";
-import { setMemberBranches } from "../repository/member-branch.repo";
+import { setMemberBranches,countBranchesByIdsAndRestaurant } from "../repository/member-branch.repo";
 import { MemberBranch } from "../entity/member-branch.entity";
 import { generateOTP, hashOTP } from "../../auth/utils";
 import { createPasswordReset } from "../../auth/repository/auth.repo";
 import { toMs } from "../../../common/utils/time";
+import {getPermissionsDetailsByRoleName} from "../repository/permission.repo";
 
 
 export class MemberService {
@@ -85,6 +86,80 @@ export class MemberService {
         catch (err) {
             await trx.rollback();
             throw err;
+        }
+    }
+
+    async updateMember(restaurantId: number, memberId: number, data: UpdateMemberDTO) {
+        // single query: member + role name
+        const result = await findMemberWithRoleName(memberId);
+        if (!result || Number(result.member.restaurantId) !== Number(restaurantId)) {
+            throw MemberNotFoundError;
+        }
+
+        const updateData: {roleId?: number, status?: string} = {};
+        if (data.role) {
+            const roleId = await findRoleByName(data.role);
+            if (!roleId) throw RoleNotFoundError;
+            updateData.roleId = roleId;
+        }
+        if (data.status) {
+            updateData.status = data.status;
+        }
+
+        await updateMember(memberId, updateData);
+        return {message: "Member updated successfully"};
+    }
+
+    async deleteMember(restaurantId: number, memberId: number) {
+        // single query: member + role name (no N+1)
+        const result = await findMemberWithRoleName(memberId);
+        if (!result || Number(result.member.restaurantId) !== Number(restaurantId)) {
+            throw MemberNotFoundError;
+        }
+        if (result.roleName === 'owner') {
+            throw CannotDeleteOwnerError;
+        }
+        await deleteMember(memberId);
+        return {message: "Member deleted successfully"};
+    }
+
+    async updateMemberBranches(restaurantId: number, memberId: number, data: UpdateMemberBranchesDTO) {
+        // single query: member + role name (no N+1)
+        const result = await findMemberWithRoleName(memberId);
+        if (!result || Number(result.member.restaurantId) !== Number(restaurantId)) {
+            throw MemberNotFoundError;
+        }
+        if (result.roleName === 'owner') {
+            throw AssignBranchesToOwnerError;
+        }
+
+        // validate branchIds belong to this restaurant (single COUNT query)
+        await this.validateBranchOwnership(data.branchIds, restaurantId);
+
+        const now = new Date();
+        const rows = data.branchIds.map(branchId => new MemberBranch({
+            branchId,
+            memberId: result.member.id,
+            createdAt: now,
+        }));
+        await setMemberBranches(memberId, rows);
+
+        return {
+            message: "Member branch assignments updated successfully",
+            branchIds: data.branchIds,
+        };
+    }
+
+    async getRolePermissions(roleName: string) {
+        const permissions = await getPermissionsDetailsByRoleName(roleName);
+        return {role: roleName, permissions};
+    }
+
+     async validateBranchOwnership(branchIds: number[], restaurantId: number) {
+        if (branchIds.length === 0) return;
+        const count = await countBranchesByIdsAndRestaurant(branchIds, restaurantId);
+        if (count !== branchIds.length) {
+            throw InvalidBranchIdsError;
         }
     }
 }
