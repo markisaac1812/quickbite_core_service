@@ -31,4 +31,12 @@ export async function findBranchIdsByMemberId(memberId: number): Promise<number[
     return rows?.map(row => row.branch_id); // [{branch_id:2}, {branch_id:3}] -> [2,3]
 }
 
+export async function countBranchesByIdsAndRestaurant(branchIds: number[], restaurantId: number): Promise<number> {
+    const [{count}] = await db("restaurant_branches")
+        .whereIn("id", branchIds)
+        .andWhere("restaurant_id", restaurantId)
+        .count("id as count");
+    return Number(count);
+}
+
 

@@ -1,4 +1,4 @@
-import {IsEmail, IsNotEmpty, IsString, IsNumber, IsArray, IsOptional} from "class-validator";
+import {IsEmail, IsNotEmpty, IsString, IsNumber, IsArray, IsOptional,IsIn} from "class-validator";
 
 export class CreateMemberDTO {
     @IsEmail()
@@ -19,5 +19,21 @@ export class CreateMemberDTO {
 
     @IsArray()
     @IsOptional()
+    branchIds!: number[];
+}
+
+export class UpdateMemberDTO {
+    @IsString()
+    @IsOptional()
+    role?: string;
+
+    @IsString()
+    @IsOptional()
+    @IsIn(['active', 'inactive', 'suspended'])
+    status?: string;
+}
+
+export class UpdateMemberBranchesDTO {
+    @IsArray()
     branchIds!: number[];
 }

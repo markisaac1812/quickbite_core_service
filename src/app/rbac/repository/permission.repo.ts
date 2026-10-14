@@ -27,3 +27,14 @@ export async function getPermissionsByRoleName(
         return `${entity.resource}:${entity.action}`; // core:product:create
     });
 }
+
+export async function getPermissionsDetailsByRoleName(roleName: string): Promise<{permission: string}[]> {
+    const rows = await db("permissions as p")
+        .select("p.resource", "p.action")
+        .join("role_permissions as rp", "p.id", "rp.permission_id")
+        .join("roles as r", "rp.role_id", "r.id")
+        .where("r.name", roleName);
+    return rows.map(row => ({
+        permission: `${row.resource}:${row.action}`,
+    }));
+}
