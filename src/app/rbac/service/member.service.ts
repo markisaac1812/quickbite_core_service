@@ -37,6 +37,8 @@ export class MemberService {
             throw RoleNotFoundError
         }
 
+        await this.validateBranchOwnership(data.branchIds ?? [], restaurantId);
+
         // create user, member, assign branches
         const trx = await db.transaction();
         try {

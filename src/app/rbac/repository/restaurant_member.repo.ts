@@ -38,7 +38,7 @@ export async function activateMemberByUserId(userId:number, conn: Knex = db): Pr
     )
 }
 
-export async function findRestaurantMemberWithRole(userId: number): Promise<{member: RestaurantMember; roleName:string;}> {
+export async function findRestaurantMemberWithRole(userId: number): Promise<{member: RestaurantMember; roleName:string;} | undefined> {
     const row = await db("restaurant_members as rm").select(
         "rm.restaurant_id",
         "rm.id",
@@ -46,6 +46,7 @@ export async function findRestaurantMemberWithRole(userId: number): Promise<{mem
     ).leftJoin("roles as r","rm.role_id","r.id")
         .where("rm.user_id", userId)
         .andWhere("rm.status",MemberStatus.ACTIVE).first();
+    if (!row) return undefined;
     return {
         member: toEntity(row),
         roleName: row.roleName,

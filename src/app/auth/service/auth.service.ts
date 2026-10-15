@@ -90,13 +90,14 @@ export class AuthService {
         let restaurantMemberInfo = null
         if(existing.systemRole == SystemRole.RESTAURANT_USER) {
             const memberData =  await findRestaurantMemberWithRole(existing.id);
+            if (!memberData) {
+                throw InvalidCredentialsError;
+            }
             const branchIds = await findBranchIdsByMemberId(memberData.member.id);
-            if(memberData)  {
-                restaurantMemberInfo = {
-                    restaurantId: memberData.member.restaurantId,
-                    restaurantRole: memberData.roleName,
-                    branchIds
-                }
+            restaurantMemberInfo = {
+                restaurantId: memberData.member.restaurantId,
+                restaurantRole: memberData.roleName,
+                branchIds
             }
         }
 

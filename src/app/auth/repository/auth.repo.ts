@@ -32,6 +32,7 @@ export async function findLatestPasswordResetByUserId(userId: number): Promise<P
         .whereNull("consumed_at")
         .orderBy('id', 'desc')
         .first()
+    if (!row) return null;
     return toEntity(row)
 }
 
