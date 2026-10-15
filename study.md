@@ -84,6 +84,55 @@ in your apis desing alwyas start from higher entity to entity
 e.g api/restaurants/:restaurantID/branches/:branchesID/members -> TRUE
     api/branches/:brnachesID/restaurants/:restaurantID -> FALSE
 
+
+###### HOW RBAC WORKS
+RBAC means **Role-Based Access Control**. It answers this question: **"Is this user allowed to do this action?"**
+
+Simple example:
+
+```ts
+rbac({ resource: "product", action: "create" })
+```
+
+This means the user needs the `product:create` permission to continue.
+
+### Simple RBAC flow
+
+1. **Authentication runs first.** The `authenticate` middleware checks the user's token. If it is valid, it puts the user's information in `req.user`.
+2. **RBAC checks that a user exists.** If `req.user` is missing, the request is not authenticated and the request stops with an authentication error.
+3. **System admins can bypass the permission check.** By default, a user with the `system_admin` role is allowed through. A route can disable this with `allowSystemAdmin: false`.
+4. **Restaurant users are checked by their restaurant role.** The middleware gets the role's permissions, such as `product:create` or `branch:read`.
+5. **Permissions are cached.** The application first looks in its in-memory cache. If the role's permissions are not cached, it loads them from the database and caches them for one hour.
+6. **The requested permission is compared.** For `resource: "product"` and `action: "create"`, the middleware looks for `product:create`.
+7. **The request either continues or stops.** If the permission exists, `next()` sends the request to the next middleware or controller. If it does not exist, the API returns `403 Permission denied`.
+8. **Other roles are denied.** A user who is not a system admin or restaurant user is not allowed through this middleware.
+
+### Restaurant and branch scope
+
+The `rbac` middleware checks **what** the user can do. The other middleware functions check **where** the user can do it:
+
+- `requireRestaurantMember` checks that the user's `restaurantId` matches the restaurant in the URL. System admins can bypass this check.
+- `requireBranchAccess` checks the requested `branchId`. System admins and restaurant owners can access all branches. Other users can access only the branch IDs in their `req.user.branchIds` list.
+- If an endpoint does not include a branch ID, `requireBranchAccess` lets the request continue.
+
+### Full request example
+
+```text
+Request: POST /restaurants/10/products
+  -> authenticate
+    Verify the token and set req.user
+  -> requireRestaurantMember
+    Check that the user belongs to restaurant 10
+  -> requireBranchAccess
+    Check that the user can access the requested branch
+  -> rbac({ resource: "product", action: "create" })
+    Check the user's role for product:create
+  -> product controller
+    Run the actual business logic
+```
+
+In short: **authentication proves who the user is, scope middleware checks where they can work, and RBAC checks what they can do.**
+
 ###### HOW ALL MIDDLEWARES WORK TOGETHER
 Route (express router)
   -> authenticate (verify JWT, set req.user)
