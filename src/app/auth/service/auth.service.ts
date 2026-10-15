@@ -1,45 +1,38 @@
 import { db } from "../../../common/knex/knex";
 import { findBranchIdsByMemberId } from "../../rbac/repository/member-branch.repo";
 import { activateMemberByUserId, findRestaurantMemberWithRole } from "../../rbac/repository/restaurant_member.repo";
+import { memberService, MemberService } from "../../rbac/service/member.service";
 import { restaurantService, RestaurantService } from "../../restaurant/service/restaurant.service";
 import {SystemRole} from "../../user/entity/enums";
-import {findUserExistsByEmailOrPhone, createUser, findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
+import { userService, UserService } from "../../user/service/user.service";
+import {findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
 import {LoginDTO, RegisterDTO,ForgotPasswordDTO,ResetPasswordDTO} from "../dto/auth.dto";
 import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError, InvalidRefreshTokenError,RestaurantDataMissingError} from "../errors";
 import { createPasswordReset, findLatestPasswordResetByUserId, updatePasswordResetConsumedAt } from "../repository/auth.repo";
 import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP,verifyRefreshToken} from "../utils";
 
 export class AuthService {
-    constructor(private readonly restaurantService: RestaurantService) {}
+    constructor(
+        private readonly restaurantService: RestaurantService,
+        private readonly userService: UserService,
+        private readonly memberService: MemberService,
+    ) {}
     register = async(data: RegisterDTO )=> {
         if (data.role == SystemRole.SYSTEM_ADMIN) {
             throw CannotSignupAsSystemAdmin
         }
-        // 1. check if user exists by email
-        const existing = await findUserExistsByEmailOrPhone(data.email, data.phone);
-
-        // 2. if exists we throw an error
-        if(existing) {
-            throw UserAlreadyExistsError
-        }
-        // 3. hashPassword
-        const hashedPassword = await hashPassword(data.password);
-
-        // 4. create user
-        const now = new Date();
+        // 1. create user
         const tsx = await db.transaction()
         let restaurant;
         let user;
-
+        let restaurantMemberInfo: {restaurantId?: number, restaurantRole?: string, branchIds?: number[]} = {};;
         try{
-            user = await createUser({
+            user = await this.userService.create({
                 email: data.email,
                 phone: data.phone,
                 name: data.name,
-                passwordHash: hashedPassword,
+                password: data.password,
                 systemRole: data.role,
-                createdAt: now,
-                updatedAt: now,
         },tsx)
 
         // check if type restaurnat => call restaurant service to create restaurant
@@ -48,6 +41,12 @@ export class AuthService {
                     throw RestaurantDataMissingError
                 }
                 restaurant = await this.restaurantService.create(user.id, data.restaurant,tsx);
+                await this.memberService.createOwnerMember(restaurant.id, user.id, tsx);
+                restaurantMemberInfo = {
+                    restaurantId: restaurant.id,
+                    restaurantRole: 'owner',
+                    branchIds: [],
+                };
             }
             await tsx.commit();
         }catch(error){
@@ -56,7 +55,7 @@ export class AuthService {
         }
         
         // 5. create access token , refresh token
-        const payload = {userId: user.id, role: data.role, email: user.email};
+        const payload = {userId: user.id, role: data.role, email: user.email, ...restaurantMemberInfo};
         const accessToken = createAccessToken(payload);
         const refreshToken = createRefreshToken(payload);
 
@@ -193,4 +192,4 @@ export class AuthService {
     }
 }
 
-export const authService = new AuthService(restaurantService);
+export const authService = new AuthService(restaurantService, userService, memberService);

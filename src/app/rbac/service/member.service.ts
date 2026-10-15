@@ -1,7 +1,6 @@
 import { CreateMemberDTO, UpdateMemberDTO,UpdateMemberBranchesDTO } from "../dto/member.dto";
 import {CannotCreateOwnerUserError, RoleNotFoundError,MemberNotFoundError,CannotDeleteOwnerError,AssignBranchesToOwnerError,InvalidBranchIdsError} from "../errors";
 import {UserAlreadyExistsError} from "../../auth/errors";
-import { findUserByEmail,createUser } from "../../user/repository/user.repo";
 import {findRoleByName} from "../repository/role.repo";
 import{db} from "../../../common/knex/knex";
 import {SystemRole} from "../../user/entity/enums";
@@ -13,16 +12,21 @@ import { generateOTP, hashOTP } from "../../auth/utils";
 import { createPasswordReset } from "../../auth/repository/auth.repo";
 import { toMs } from "../../../common/utils/time";
 import {getPermissionsDetailsByRoleName} from "../repository/permission.repo";
+import { RestaurantMember } from "../entity/restaurant-member.entity";
+import { Knex } from "knex";
+import { UserService, userService } from "../../user/service/user.service";
 
 
 export class MemberService {
+    constructor(private readonly userService:UserService) {}
+
     async createMember(restaurantId: number, data: CreateMemberDTO){
         // dont accept owner role creation
         if(data.role == 'owner') {
             throw CannotCreateOwnerUserError
         }
         // check if user alr exists
-        const existingUser = await findUserByEmail(data.email);
+        const existingUser = await this.userService.findByEmail(data.email);
         if(existingUser){
             throw UserAlreadyExistsError
         }
@@ -37,14 +41,12 @@ export class MemberService {
         const trx = await db.transaction();
         try {
             const now = new Date();
-            const user = await createUser({
+            const user = await this.userService.create({
                 email: data.email,
                 name: data.name,
                 phone: data.phoneNumber,
-                passwordHash: '',
+                password: '',
                 systemRole: SystemRole.RESTAURANT_USER,
-                createdAt: now,
-                updatedAt: now,
             }, trx);
 
             const member = await createRestaurantMember(
@@ -87,6 +89,20 @@ export class MemberService {
             await trx.rollback();
             throw err;
         }
+    }
+
+    async createOwnerMember(restaurantId: number, userId: number, trx?: Knex.Transaction): Promise<RestaurantMember> {
+        const ownerRoleId = await findRoleByName('owner', trx);
+        if (!ownerRoleId) throw RoleNotFoundError;
+        const now = new Date();
+        return createRestaurantMember({
+            restaurantId,
+            userId,
+            roleId: ownerRoleId,
+            status: MemberStatus.ACTIVE,
+            createdAt: now,
+            updatedAt: now,
+        }, trx);
     }
 
     async listMembers(restaurantId: number) {
@@ -169,6 +185,6 @@ export class MemberService {
     }
 }
 
-export const memberService = new MemberService();
+export const memberService = new MemberService(userService);
        
     

@@ -1,17 +1,19 @@
 import { Knex } from "knex";
 import {RestaurantRegisterDTO} from "../../auth/dto/auth.dto";
+import { memberService } from "../../rbac/service/member.service";
 import { RestaurantStatus } from "../entity/enums";
 import { Restaurant } from "../entity/restaurant.entity";
 import { createRestaurant,findAllRestaurants, findRestaurantById, updateRestaurant, updateRestaurantStatus } from "../repository/restaurant.repository";
-import { OwnerAlreadyExistsError, RestaurantNotFoundError } from "../errors";
+import { RestaurantNotFoundError } from "../errors";
 import { CreateRestaurantDTO, UpdateRestaurantDTO, UpdateRestaurantStatusDTO } from "../dto/restaurant.dto";
 import { SystemRole } from "../../user/entity/enums";
 import { UnAuthorisedError } from "../../../common/auth/errors";
-import { createUser, findUserExistsByEmailOrPhone } from "../../user/repository/user.repo";
-import { hashPassword } from "../../auth/utils";
+import { userService, UserService } from "../../user/service/user.service";
 import { db } from "../../../common/knex/knex";
 
 export class RestaurantService {
+    constructor(private readonly userService: UserService) {}
+
     create = async (userId:number,data: RestaurantRegisterDTO,trx:Knex) => {
         const now = new Date();
         const restaurant = new Restaurant({
@@ -49,27 +51,16 @@ export class RestaurantService {
             throw UnAuthorisedError;
         }
 
-        // checks user not in db
-        const existing = await findUserExistsByEmailOrPhone(data.owner.email,data.owner.phone);
-        if(existing) {
-            throw OwnerAlreadyExistsError
-        }
-
-        // hashes password
-        const hashedPassowrd = await hashPassword(data.owner.password)
-
         // creates user
         const now = new Date();
         const tsx = await db.transaction()
         try{
-            const user = await createUser({
+            const user = await this.userService.create({
                 email: data.owner.email,
                 phone: data.owner.phone,
                 name: data.owner.name,
-                passwordHash: hashedPassowrd,
+                password: data.owner.password,
                 systemRole: SystemRole.RESTAURANT_USER,
-                createdAt: now,
-                updatedAt: now,
         },tsx);
 
             const restaurant = await createRestaurant(new Restaurant({
@@ -82,6 +73,7 @@ export class RestaurantService {
                 updatedAt: now,
                 statusUpdatedAt: now,
             }),tsx);
+            await memberService.createOwnerMember(restaurant.id, user.id, tsx);
 
             await tsx.commit();
             return {
@@ -139,4 +131,4 @@ export class RestaurantService {
     }
 }    
 
-export const restaurantService = new RestaurantService();
+export const restaurantService = new RestaurantService(userService);
