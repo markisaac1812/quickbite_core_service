@@ -142,3 +142,8 @@ Route (express router)
   -> Controller (validates DTO, extracts params)
     -> Service (business logic, orchestrates repos)
       -> Repository (DB queries via knex)    
+
+
+###### BEST PRACTISE 
+Service A should not call repo of service B directly . it should call Service B .
+this can be done by adding contructor with private readonly      
