@@ -144,6 +144,53 @@ Route (express router)
       -> Repository (DB queries via knex)    
 
 
-###### BEST PRACTISE 
-Service A should not call repo of service B directly . it should call Service B .
-this can be done by adding contructor with private readonly      
+###### BEST PRACTISE
+
+Service A should not call the repository of Service B directly. Service A should call Service B, and Service B should call its own repository.
+
+This is important because each service owns its business rules and database details. Keeping that boundary:
+
+- prevents business rules from being duplicated or bypassed
+- keeps repository changes local to the service that owns them
+- makes transactions and validation easier to coordinate
+- makes services easier to test by replacing dependencies with mocks
+- reduces coupling between modules
+
+For example, `RestaurantService` should not import `createUser` from the user repository. It should depend on `UserService` and ask it to create the user:
+
+```ts
+export class RestaurantService {
+  constructor(
+    private readonly userService: UserService,
+    private readonly memberService: MemberService,
+  ) {}
+
+  createWithOwner = async (data: CreateRestaurantDTO, trx: Knex.Transaction) => {
+    const user = await this.userService.create({
+      email: data.owner.email,
+      phone: data.owner.phone,
+      name: data.owner.name,
+      password: data.owner.password,
+      systemRole: SystemRole.RESTAURANT_USER,
+    }, trx);
+
+    const restaurant = await this.create(user.id, data, trx);
+    await this.memberService.createOwnerMember(restaurant.id, user.id, trx);
+  };
+}
+```
+
+The dependency is supplied through the constructor (constructor dependency injection):
+
+```ts
+const restaurantService = new RestaurantService(userService, memberService);
+```
+
+The service receives its dependencies from outside instead of creating them internally. This keeps the dependency direction clear:
+
+```text
+RestaurantService -> UserService -> UserRepository
+RestaurantService -> MemberService -> MemberRepository
+```
+
+Each service owns its repository, while other services use its public methods. This rule should also be followed when the operation needs a shared transaction: pass the transaction into the called service rather than bypassing that service and calling its repository directly.
