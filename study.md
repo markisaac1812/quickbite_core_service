@@ -194,3 +194,12 @@ RestaurantService -> MemberService -> MemberRepository
 ```
 
 Each service owns its repository, while other services use its public methods. This rule should also be followed when the operation needs a shared transaction: pass the transaction into the called service rather than bypassing that service and calling its repository directly.
+
+
+###### COMMON VS LIB VS PKG
+first the project have all shared functions in common dir , but this is not best practise it should have
+LIB: for shared function across my application only ( not tother servces just my app ) and pkg have shared function across all my serivces or all my codebase that anyone can import it
+
+###### INJECTABLE() VS INJECT
+at the begining if we needed service A to call Service B repo that was allowed , then we did use dependecy injection to allow only Service A to call Serivce B then service B call its repo . then part of improved architecture . now we used sth called injectable and inject :
+Injectable(): ya3ni fih 7aga b depened 3lek e.g injectable authController -> ya3ni fih class by depended 3la auth controller . inject ya3ni anta bt depend 3la 7aga e,g inject member service -> anta be dependd 3la member service
