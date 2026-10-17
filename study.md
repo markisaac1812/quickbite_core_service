@@ -203,3 +203,8 @@ LIB: for shared function across my application only ( not tother servces just my
 ###### INJECTABLE() VS INJECT
 at the begining if we needed service A to call Service B repo that was allowed , then we did use dependecy injection to allow only Service A to call Serivce B then service B call its repo . then part of improved architecture . now we used sth called injectable and inject :
 Injectable(): ya3ni fih 7aga b depened 3lek e.g injectable authController -> ya3ni fih class by depended 3la auth controller . inject ya3ni anta bt depend 3la 7aga e,g inject member service -> anta be dependd 3la member service
+
+
+###### CORS , HELMET BASIC SECURITY RISKS
+cors:(Cross-Origin Resource Sharing) is a browser security mechanism that allows a web page running on one domain to safely request and access resources from a server on a different domain. ya3ni bet specify domains eli anta 3ayzha bs t3ml request ll backend bta3k ay 7aga bara dol rejected
+Helmet: that helps protect your app from common web vulnerabilities by automatically setting secure HTTP response headers.
