@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
+    "@types/helmet": "^0.0.48",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -14,6 +15,7 @@
     "dotenv": "^18.0.1",
     "eslint": "^10.11.0",
     "express": "^5.2.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "knex": "^3.3.0",
     "pg": "^8.23.0",
