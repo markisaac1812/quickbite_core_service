@@ -1,6 +1,6 @@
 import {Response} from "express";
 import {env} from "../config/env";
-import {toMs} from "./time";
+import {toMs} from "../../pkg/utils/time";
 
 export function setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
     res.cookie("access_token", accessToken, {

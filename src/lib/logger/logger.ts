@@ -1,6 +1,6 @@
 type LogLevel = 'info' | 'error' | 'warn' | 'debug';
 
-class Logger {
+export class Logger {
     private static instance: Logger;
 
     constructor() {
