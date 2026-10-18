@@ -2,7 +2,7 @@ import { CreateMemberDTO, UpdateMemberDTO,UpdateMemberBranchesDTO } from "../dto
 import {CannotCreateOwnerUserError, RoleNotFoundError,MemberNotFoundError,CannotDeleteOwnerError,AssignBranchesToOwnerError,InvalidBranchIdsError} from "../errors";
 import {UserAlreadyExistsError} from "../../auth/errors";
 import {findRoleByName} from "../repository/role.repo";
-import{db} from "../../../common/knex/knex";
+import{db} from "../../../lib/knex/knex";
 import {SystemRole} from "../../user/entity/enums";
 import { createRestaurantMember, findMemberWithRoleName,updateMember,deleteMember,findMembersByRestaurantId } from "../repository/restaurant_member.repo";
 import { MemberStatus } from "../entity/enums";
@@ -10,15 +10,17 @@ import { setMemberBranches,countBranchesByIdsAndRestaurant } from "../repository
 import { MemberBranch } from "../entity/member-branch.entity";
 import { generateOTP, hashOTP } from "../../auth/utils";
 import { createPasswordReset } from "../../auth/repository/auth.repo";
-import { toMs } from "../../../common/utils/time";
+import { toMs } from "../../../pkg/utils/time";
 import {getPermissionsDetailsByRoleName} from "../repository/permission.repo";
 import { RestaurantMember } from "../entity/restaurant-member.entity";
 import { Knex } from "knex";
-import { UserService, userService } from "../../user/service/user.service";
+import { UserService} from "../../user/service/user.service";
+import {injectable,inject} from "tsyringe";
+import {TOKENS} from "../../../lib/di/tokens";
 
-
+@injectable()
 export class MemberService {
-    constructor(private readonly userService:UserService) {}
+    constructor(@inject(TOKENS.UserService) private readonly userService:UserService) {}
 
     async createMember(restaurantId: number, data: CreateMemberDTO){
         // dont accept owner role creation
@@ -187,6 +189,5 @@ export class MemberService {
     }
 }
 
-export const memberService = new MemberService(userService);
        
     

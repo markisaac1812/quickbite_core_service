@@ -1,7 +1,9 @@
-import {toMs} from "../../../common/utils/time";
+import {toMs} from "../../../pkg/utils/time";
 import {getPermissionsByRoleName} from "../repository/permission.repo";
+import {injectable} from "tsyringe";
 
-class PermissionCacheService {
+@injectable()
+export class PermissionCacheService {
     private cache:Map<string, {permissions:string[], cachedAt:number}> = new Map();
     private readonly TTL = toMs(1,'h');
 

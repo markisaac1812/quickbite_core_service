@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateMemberDTO, UpdateMemberBranchesDTO, UpdateMemberDTO } from "../dto/member.dto";
-import { MemberService, memberService } from "../service/member.service";
-import { validateBody } from "../../../common/validation/validate";
+import { MemberService} from "../service/member.service";
+import { validateBody } from "../../../lib/validation/validate";
+import { inject,injectable } from "tsyringe";
+import { TOKENS } from "../../../lib/di/tokens";
 
+@injectable()
 export class MemberController {
-    constructor(private readonly memberService: MemberService) {}
+    constructor(@inject(TOKENS.MemberService) private readonly memberService: MemberService) {}
 
     createMember = async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -82,4 +85,3 @@ export class MemberController {
 
 }
 
-export const memberController = new MemberController(memberService);

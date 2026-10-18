@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import {db} from "../../../common/knex/knex"
+import {db} from "../../../lib/knex/knex"
 import {Restaurant} from "../entity/restaurant.entity"
 
 const RESTAURANT_COLUMNS = ['id', 'owner_id', 'name', 'logo_url', 'status', 'primary_country', 'created_at', 'updated_at', 'status_updated_at']

@@ -1,6 +1,6 @@
 import {RestaurantMember} from "../entity/restaurant-member.entity";
 import {MemberStatus} from "../entity/enums";
-import { db } from "../../../common/knex/knex";
+import { db } from "../../../lib/knex/knex";
 import { Knex } from "knex";
 
 const MEMBER_COLUMNS = ['id','restaurant_id','user_id','role_id','status','created_at','updated_at'];

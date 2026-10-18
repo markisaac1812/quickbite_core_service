@@ -1,18 +1,20 @@
 import { Knex } from "knex";
 import {RestaurantRegisterDTO} from "../../auth/dto/auth.dto";
-import { memberService } from "../../rbac/service/member.service";
 import { RestaurantStatus } from "../entity/enums";
 import { Restaurant } from "../entity/restaurant.entity";
 import { createRestaurant,findAllRestaurants, findRestaurantById, updateRestaurant, updateRestaurantStatus } from "../repository/restaurant.repository";
 import { RestaurantNotFoundError } from "../errors";
 import { CreateRestaurantDTO, UpdateRestaurantDTO, UpdateRestaurantStatusDTO } from "../dto/restaurant.dto";
 import { SystemRole } from "../../user/entity/enums";
-import { UnAuthorisedError } from "../../../common/auth/errors";
-import { userService, UserService } from "../../user/service/user.service";
-import { db } from "../../../common/knex/knex";
+import { UnAuthorisedError } from "../../../lib/auth/errors";
+import {UserService } from "../../user/service/user.service";
+import { db } from "../../../lib/knex/knex";
+import {inject, injectable} from "tsyringe";
+import {TOKENS} from "../../../lib/di/tokens";
 
+@injectable()
 export class RestaurantService {
-    constructor(private readonly userService: UserService) {}
+    constructor(@inject(TOKENS.UserService) private readonly userService: UserService) {}
 
     create = async (userId:number,data: RestaurantRegisterDTO,trx:Knex) => {
         const now = new Date();
@@ -73,7 +75,12 @@ export class RestaurantService {
                 updatedAt: now,
                 statusUpdatedAt: now,
             }),tsx);
-            await memberService.createOwnerMember(restaurant.id, user.id, tsx);
+
+            // resolve from container to avoid circular dependency
+            const {container: c} = require("../../../lib/di/container");
+            const {TOKENS: T} = require("../../../lib/di/tokens");
+            const memberSvc = c.resolve(T.MemberService);
+            await memberSvc.createOwnerMember(restaurant.id, user.id, tsx);
 
             await tsx.commit();
             return {
@@ -130,5 +137,3 @@ export class RestaurantService {
         return updatedRestaurant;
     }
 }    
-
-export const restaurantService = new RestaurantService(userService);

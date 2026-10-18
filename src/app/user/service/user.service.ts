@@ -6,6 +6,7 @@ import { Knex } from "knex";
 import {User} from "../entity/user.entity";
 import { UserAlreadyExistsError } from "../../auth/errors";
 import { hashPassword } from "../../auth/utils";
+import {injectable} from "tsyringe";
 export interface CreateUserData {
     email: string;
     phone: string;
@@ -14,6 +15,7 @@ export interface CreateUserData {
     systemRole: SystemRole;
 }
 
+@injectable()
 export class UserService{
     findByEmail = async (email: string): Promise<User | undefined> => {
         return findUserByEmail(email);
@@ -67,5 +69,3 @@ export class UserService{
         };
     }
 }
-
-export const userService = new UserService();
