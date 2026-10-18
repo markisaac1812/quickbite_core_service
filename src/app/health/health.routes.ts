@@ -1,5 +1,5 @@
 import {Router} from "express"
-import {pingDB} from "../../common/knex/knex"
+import {pingDB} from "../../lib/knex/knex"
 
 export const healthRouter = Router()
 

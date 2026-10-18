@@ -2,10 +2,13 @@ import { findNearbyBranches,createBranch,findBranchByRestaurantId, findBranchByI
 import {SystemRole} from "../../user/entity/enums";
 import {CreateBranchDTO, UpdateBranchStatusDTO} from "../dto/branch.dto";
 import {findRestaurantById} from "../../restaurant/repository/restaurant.repository";
-import {UnAuthorisedError} from "../../../common/auth/errors";
+import {UnAuthorisedError} from "../../../lib/auth/errors";
 import {RestaurantNotFoundError} from "../../restaurant/errors";
 import { BranchNotFoundError } from "../erros";
+import { injectable } from "tsyringe";
 
+
+@injectable()
 export class BranchService {
 
    findNearby = async(lat:number,lng:number)=>{
@@ -94,4 +97,3 @@ export class BranchService {
     }
 }
 
-export const branchService = new BranchService();

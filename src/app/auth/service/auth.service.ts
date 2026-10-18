@@ -1,21 +1,24 @@
-import { db } from "../../../common/knex/knex";
+import { db } from "../../../lib/knex/knex";
 import { findBranchIdsByMemberId } from "../../rbac/repository/member-branch.repo";
 import { activateMemberByUserId, findRestaurantMemberWithRole } from "../../rbac/repository/restaurant_member.repo";
-import { memberService, MemberService } from "../../rbac/service/member.service";
-import { restaurantService, RestaurantService } from "../../restaurant/service/restaurant.service";
+import { MemberService } from "../../rbac/service/member.service";
+import {RestaurantService } from "../../restaurant/service/restaurant.service";
 import {SystemRole} from "../../user/entity/enums";
-import { userService, UserService } from "../../user/service/user.service";
+import {UserService } from "../../user/service/user.service";
 import {findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
 import {LoginDTO, RegisterDTO,ForgotPasswordDTO,ResetPasswordDTO} from "../dto/auth.dto";
 import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError, InvalidRefreshTokenError,RestaurantDataMissingError} from "../errors";
 import { createPasswordReset, findLatestPasswordResetByUserId, updatePasswordResetConsumedAt } from "../repository/auth.repo";
 import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP,verifyRefreshToken} from "../utils";
+import {injectable,inject} from "tsyringe";
+import {TOKENS} from "../../../lib/di/tokens";
 
+@injectable()
 export class AuthService {
     constructor(
-        private readonly restaurantService: RestaurantService,
-        private readonly userService: UserService,
-        private readonly memberService: MemberService,
+        @inject(TOKENS.RestaurantService) private readonly restaurantService: RestaurantService,
+        @inject(TOKENS.UserService) private readonly userService: UserService,
+        @inject(TOKENS.MemberService) private readonly memberService: MemberService,
     ) {}
     register = async(data: RegisterDTO )=> {
         if (data.role == SystemRole.SYSTEM_ADMIN) {
@@ -192,5 +195,3 @@ export class AuthService {
         await activateMemberByUserId(user.id)
     }
 }
-
-export const authService = new AuthService(restaurantService, userService, memberService);

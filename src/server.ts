@@ -1,8 +1,8 @@
 import "reflect-metadata";
 import http from "http";
 import { createApp } from "./app";
-import { env } from "./common/config/env";
-import {db} from "./common/knex/knex";
+import { env } from "./lib/config/env";
+import {db} from "./lib/knex/knex";
 
 const app = createApp();
 const port = env.port

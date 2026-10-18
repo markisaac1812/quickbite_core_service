@@ -1,5 +1,5 @@
 import { Product } from "../entity/product.entity";
-import {db} from "../../../common/knex/knex"
+import {db} from "../../../lib/knex/knex"
 
 const PRODUCT_COLS = ['id', 'name', 'description', 'image_url', 'restaurant_id', 'category_id', 'created_at', 'updated_at', 'deleted_at'];
 

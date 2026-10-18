@@ -1,13 +1,17 @@
-import { validateBody } from '../../../common/validation/validate';
+import { validateBody } from '../../../lib/validation/validate';
 import { ForgotPasswordDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from '../dto/auth.dto';
-import {AuthService,authService} from '../service/auth.service';
+import {AuthService} from '../service/auth.service';
 import {Request, Response, NextFunction} from 'express';
-import {setAuthCookies} from '../../../common/utils/cookies';
-import {env} from '../../../common/config/env';
-import {toMs} from '../../../common/utils/time';
+import {setAuthCookies} from '../../../lib/utils/cookies';
+import {env} from '../../../lib/config/env';
+import {toMs} from '../../../pkg/utils/time';
+import {inject, injectable} from "tsyringe";
+import {TOKENS} from "../../../lib/di/tokens";
+import {sendSuccess} from "../../../lib/http/response";
 
+@injectable()
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(@inject(TOKENS.AuthService)private readonly authService: AuthService) {}
 
     register = async(req: Request, res: Response, next: NextFunction)=>{
         try{
@@ -17,7 +21,7 @@ export class AuthController {
             const result = await this.authService.register(data);
             setAuthCookies(res, result.accessToken, result.refreshToken);
             //3 return response
-            res.status(201).json(result);
+            sendSuccess(res, result, 201);
         }
         catch(err){
             next(err)
@@ -32,7 +36,7 @@ export class AuthController {
             const result = await this.authService.login(data);
             setAuthCookies(res, result.accessToken, result.refreshToken);
             //3 return response
-            res.status(200).json(result);
+            sendSuccess(res, result, 200);
         }
         catch(err){
             next(err)
@@ -46,7 +50,7 @@ export class AuthController {
             //2 call forget password form service
             await this.authService.forgetPassword(data);
             //3 return response
-            res.status(200).json({message: 'If the email exists, an OTP has been sent.'});
+            sendSuccess(res, {message: 'If the email exists, an OTP has been sent.'}, 200);
         }
         catch(err){
             next(err)
@@ -60,7 +64,7 @@ export class AuthController {
             //2 call reset password form service
             await this.authService.resetPassword(data);
             //3 return response
-            res.status(200).json({message: 'Password reset successfully.'});
+            sendSuccess(res, {message: 'Password reset successfully. Please login again.'}, 200);
         }
         catch(err){
             next(err)
@@ -76,7 +80,7 @@ export class AuthController {
                 maxAge: toMs(1, 'h'),
             });
             //3 return response
-            res.status(200).json({message: 'Token refreshed successfully.'});
+            sendSuccess(res, {message: 'Token refreshed successfully.'}, 200);
         }
         catch(err){
             next(err)
@@ -87,9 +91,7 @@ export class AuthController {
         try{
             const data = await validateBody(ResetPasswordDTO, req.body);
             await this.authService.acceptInvite(data);
-            res.status(200).json({
-                "message": "Invitation accepted successfully, please login again",
-            })
+            sendSuccess(res, {message: 'Invitation accepted successfully, please login again'}, 200);
         }
         catch(err) {
             next(err);
@@ -98,4 +100,3 @@ export class AuthController {
 
 }
 
-export const authController = new AuthController(authService);

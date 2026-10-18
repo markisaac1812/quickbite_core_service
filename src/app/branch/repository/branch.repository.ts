@@ -1,5 +1,5 @@
 import {Knex} from "knex";
-import {db} from "../../../common/knex/knex";
+import {db} from "../../../lib/knex/knex";
 import {Branch} from "../entity/branch.entity";
 
 const BRANCH_COLUMNS = ['id','restaurant_id','country_code','address_text','label','lat','lng',

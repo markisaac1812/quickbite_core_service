@@ -5,11 +5,13 @@ import {findBranchById} from "../../branch/repository/branch.repository";
 import { BranchNotFoundError } from "../../branch/erros";
 import { createProduct, findProductById, findProductByrestaurantId, findProductsByBranch,updateProduct } from "../repository/product.repo";
 import { SystemRole } from "../../user/entity/enums";
-import { UnAuthorisedError } from "../../../common/auth/errors";
+import { UnAuthorisedError } from "../../../lib/auth/errors";
 import { ProductNotFoundError } from "../error";
 import { CreateProductDTO,UpdateProductDTO } from "../dto/product.dto";
 import { updateBranchDetails } from "../repository/product-branch.repo";
+import { injectable } from "tsyringe";
 
+@injectable()
 export class ProductService {
     findCategoriesByRestaurantId = async(restaurantId: number)=> {
         const restaurant = await findRestaurantById(restaurantId);
@@ -115,6 +117,3 @@ export class ProductService {
         return {product: updatedProduct, branchDetails};
     }
 }
-
-
-export const productService = new ProductService();

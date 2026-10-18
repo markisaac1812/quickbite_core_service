@@ -1,6 +1,7 @@
 import { createAddress, findCustomerAddressByUserId,clearDefaultByUserId,findAddressById,UpdateAddress, deleteAddress } from "../repository/customer-address.repo";
 import { CreateAddressDTO, UpdateAddressDTO } from "../dto/customer-address.dto";
 import { AddressNotFoundError } from "../errors";
+import { injectable } from "tsyringe";
 
   function toResponse(address: any) {
     return {
@@ -18,6 +19,7 @@ import { AddressNotFoundError } from "../errors";
     };
 }
 
+@injectable()
 export class CustomerAddressService {
 
     getUserById = async(userId: number) => {
@@ -67,4 +69,3 @@ export class CustomerAddressService {
 
 }
 
-export const customerAddressService = new CustomerAddressService();

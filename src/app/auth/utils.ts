@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt, {SignOptions} from "jsonwebtoken";
-import {env} from "../../common/config/env";
+import {env} from "../../lib/config/env";
 import crypto from "crypto";
 
 export async function hashPassword(password: string): Promise<string> {
