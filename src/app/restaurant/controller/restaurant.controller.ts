@@ -5,6 +5,7 @@ import {CreateRestaurantDTO, UpdateRestaurantDTO,UpdateRestaurantStatusDTO} from
 import { SystemRole } from "../../user/entity/enums";
 import {injectable,inject} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
+import {parsePaginationQuery, parseFilters} from "../../../lib/http/pagination/parse-query";
 
 @injectable()
 export class RestaurantController {
@@ -12,7 +13,9 @@ export class RestaurantController {
 
     getAllRestaurants = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const restaurants = await this.restaurantService.getAllRestaurants();
+            const params = parsePaginationQuery(req.query);
+            const filters = parseFilters(req.query,['id','status','name']);
+            const restaurants = await this.restaurantService.getAllRestaurants(params, filters);
             return res.status(200).json({data: restaurants});
         } catch (err) {
             next(err);

@@ -11,6 +11,7 @@ import {UserService } from "../../user/service/user.service";
 import { db } from "../../../lib/knex/knex";
 import {inject, injectable} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
+import {buildPaginationResult, FilterParams, PaginationParams} from "../../../lib/http/pagination/cursor-pagination";
 
 @injectable()
 export class RestaurantService {
@@ -33,10 +34,10 @@ export class RestaurantService {
         return result;
     }
 
-    getAllRestaurants = async () => {
+    getAllRestaurants = async (params: PaginationParams,filters: FilterParams[]) => {
         // Implementation for fetching all restaurants
-        const restaurants = await findAllRestaurants();
-        return restaurants;
+        const restaurants = await findAllRestaurants(params,filters);
+        return buildPaginationResult(restaurants, params.limit, params.sortBy);
     }
 
     getRestaurantById = async (id: number) => {

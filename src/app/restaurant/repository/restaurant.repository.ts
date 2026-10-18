@@ -1,6 +1,7 @@
 import { Knex } from "knex";
 import {db} from "../../../lib/knex/knex"
 import {Restaurant} from "../entity/restaurant.entity"
+import {applyCursorPagination, applyFilters, PaginationParams, FilterParams} from "../../../lib/http/pagination/cursor-pagination"
 
 const RESTAURANT_COLUMNS = ['id', 'owner_id', 'name', 'logo_url', 'status', 'primary_country', 'created_at', 'updated_at', 'status_updated_at']
 
@@ -18,9 +19,12 @@ function toEntity(row:any) {
     });
 }
 
-export async function findAllRestaurants(): Promise<Restaurant[]> {
+export async function findAllRestaurants(params: PaginationParams,filters: FilterParams[]): Promise<Restaurant[]> {
     // pagination and filtering will be later
-    const rows = await db("restaurants").select(RESTAURANT_COLUMNS);
+    let query = db("restaurants").select(RESTAURANT_COLUMNS);
+    query = applyFilters(query, filters);
+    query = applyCursorPagination(query, params);
+    const rows = await query;
     return rows.map(toEntity);
 }
 
