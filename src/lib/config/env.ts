@@ -21,7 +21,7 @@ const schema = z.object({
     CORS_ORIGIN: z.string().default("http://localhost:3000"),
     REDIS_HOST: z.string().default("localhost"),
     REDIS_PORT: z.string().default("6379"),
-    REDIS_PASSWORD: z.string()
+    REDIS_PASSWORD: z.string().default(""),
 });
 
 const parsed = schema.parse(process.env); 
