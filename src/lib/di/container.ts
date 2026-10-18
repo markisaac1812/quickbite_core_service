@@ -1,6 +1,7 @@
 import {container} from "tsyringe";
 import {TOKENS} from "./tokens";
 import {Logger} from "../logger/logger";
+import {cacheProvider} from "../cache/init";
 
 //infrastructure
 container.registerSingleton<Logger>(TOKENS.Logger, Logger);
@@ -45,5 +46,7 @@ container.registerSingleton<BranchController>(TOKENS.BranchController, BranchCon
 container.registerSingleton<ProductController>(TOKENS.ProductController, ProductController);
 container.registerSingleton<MemberController>(TOKENS.MemberController, MemberController);
 container.registerSingleton<CustomerAddressController>(TOKENS.CustomerAddressController, CustomerAddressController);
+
+container.registerInstance(TOKENS.CacheProvider,cacheProvider);
 
 export {container};
