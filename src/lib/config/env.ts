@@ -19,6 +19,9 @@ const schema = z.object({
     ACCESS_EXPIRES_IN: z.string().default("900"), // 15 minutes
     REFRESH_EXPIRES_IN: z.string().default("604800"), // 7 days
     CORS_ORIGIN: z.string().default("http://localhost:3000"),
+    REDIS_HOST: z.string().default("localhost"),
+    REDIS_PORT: z.string().default("6379"),
+    REDIS_PASSWORD: z.string()
 });
 
 const parsed = schema.parse(process.env); 
@@ -44,6 +47,11 @@ export const env = {
     isProduction: process.env.NODE_ENV === "production",
     cors:{
         origins: parsed.CORS_ORIGIN.split(",")
+    },
+    redis: {
+        host: parsed.REDIS_HOST,
+        port: Number(parsed.REDIS_PORT),
+        password: parsed.REDIS_PASSWORD
     }
 }
 
