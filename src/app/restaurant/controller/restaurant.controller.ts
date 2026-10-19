@@ -13,7 +13,7 @@ export class RestaurantController {
 
     getAllRestaurants = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const params = parsePaginationQuery(req.query);
+            const params = parsePaginationQuery(req.query,['createdAt', 'name', 'status']);
             const filters = parseFilters(req.query,['id','status','name']);
             const restaurants = await this.restaurantService.getAllRestaurants(params, filters);
             return res.status(200).json({data: restaurants});

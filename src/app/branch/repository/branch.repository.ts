@@ -68,7 +68,19 @@ export async function findNearbyBranches(lat: number, lng: number): Promise<Bran
        AND ST_DWithin(b.location, ST_MakePoint(?, ?)::geography, b.delivery_radius*1000)
     `,[lng, lat]);
 
-    return result.rows;
+    return result.rows.map((row: any) => ({
+        id: row.id,
+        restaurantId: row.restaurant_id,
+        addressText: row.address_text,
+        label: row.label,
+        lat: row.lat,
+        lng: row.lng,
+        isActive: row.is_active,
+        acceptOrders: row.accept_orders,
+        currency: row.currency,
+        restaurantName: row.restaurant_name,
+        logoUrl: row.logo_url,
+    }));
 }
 
 export async function findBranchByRestaurantId(id: number): Promise<Branch[]> {
