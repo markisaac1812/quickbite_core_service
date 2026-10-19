@@ -10,3 +10,7 @@ const multipliers: Record<TimeUnit, number> = {
 export function toMs(value: number, unit: TimeUnit): number {
     return value * multipliers[unit];
 }
+
+export function toSeconds(value: number, unit: TimeUnit): number {
+    return toMs(value, unit) / 1000;
+}
