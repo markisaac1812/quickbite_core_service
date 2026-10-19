@@ -2,6 +2,7 @@ import {container} from "tsyringe";
 import {TOKENS} from "./tokens";
 import {Logger} from "../logger/logger";
 import {cacheProvider} from "../cache/init";
+import {emailProvider} from "../email/init";
 
 //infrastructure
 container.registerSingleton<Logger>(TOKENS.Logger, Logger);
@@ -48,5 +49,6 @@ container.registerSingleton<MemberController>(TOKENS.MemberController, MemberCon
 container.registerSingleton<CustomerAddressController>(TOKENS.CustomerAddressController, CustomerAddressController);
 
 container.registerInstance(TOKENS.CacheProvider,cacheProvider);
+container.registerInstance(TOKENS.EmailProvider, emailProvider);
 
 export {container};
