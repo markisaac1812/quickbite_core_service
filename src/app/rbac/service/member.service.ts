@@ -17,10 +17,15 @@ import { Knex } from "knex";
 import { UserService} from "../../user/service/user.service";
 import {injectable,inject} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
+import { IEmailProvider } from "../../../pkg/email/email.interface";
+import {memberInvitationEmail} from "../templates/member-invitation";
 
 @injectable()
 export class MemberService {
-    constructor(@inject(TOKENS.UserService) private readonly userService:UserService) {}
+    constructor(
+        @inject(TOKENS.UserService) private readonly userService:UserService,
+        @inject(TOKENS.EmailProvider) private readonly emailProvider: IEmailProvider        
+    ) {}
 
     async createMember(restaurantId: number, data: CreateMemberDTO){
         // dont accept owner role creation
@@ -85,7 +90,8 @@ export class MemberService {
                 }, trx
             )
             // TODO: send email
-            console.log(`mocked email sent ${otp}`)
+            const email = memberInvitationEmail(otp, data.role);
+            await this.emailProvider.send(user.email, email.subject, email.html);
 
             await trx.commit()
         }

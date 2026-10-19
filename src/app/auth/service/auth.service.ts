@@ -12,6 +12,8 @@ import { createPasswordReset, findLatestPasswordResetByUserId, updatePasswordRes
 import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP,verifyRefreshToken} from "../utils";
 import {injectable,inject} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
+import {IEmailProvider} from "../../../pkg/email/email.interface";
+import {passwordResetEmail} from "../templates/password-reset";
 
 @injectable()
 export class AuthService {
@@ -19,6 +21,7 @@ export class AuthService {
         @inject(TOKENS.RestaurantService) private readonly restaurantService: RestaurantService,
         @inject(TOKENS.UserService) private readonly userService: UserService,
         @inject(TOKENS.MemberService) private readonly memberService: MemberService,
+        @inject(TOKENS.EmailProvider) private readonly emailProvider: IEmailProvider
     ) {}
     register = async(data: RegisterDTO )=> {
         if (data.role == SystemRole.SYSTEM_ADMIN) {
@@ -144,7 +147,8 @@ export class AuthService {
             createdAt: now,
         });
         //5 Send email (future implementation)
-        console.log(`Sending OTP ${otp} to email ${existing.email}`);
+        const email = passwordResetEmail(otp);
+        await this.emailProvider.send(existing.email, email.subject, email.html);
     };
 
     resetPassword = async(data: ResetPasswordDTO) => {
