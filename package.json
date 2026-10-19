@@ -20,6 +20,7 @@
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "knex": "^3.3.0",
+    "node-mailjet": "^6.0.11",
     "pg": "^8.23.0",
     "prettier": "^3.9.8",
     "reflect-metadata": "^0.2.2",
