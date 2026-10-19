@@ -1,12 +1,18 @@
 import {PaginationParams, FilterParams} from "./cursor-pagination";
 
-export function parsePaginationQuery(query : Record<string, any>): PaginationParams {
-        return {
-            cursor: query.cursor as string,
-            limit: Math.min(1000, Number(query.limit)),
-            sortBy: query.sortBy as string,
-            sortOrder: query.sortOrder === 'desc' ? 'desc' : 'asc'
-        }
+const DEFAULT_SORT_BY = 'createdAt';
+
+export function parsePaginationQuery(query: Record<string, any>, allowedSortBy: string[] = ['createdAt']): PaginationParams {
+    const sortBy = allowedSortBy.includes(query.sortBy as string)
+        ? (query.sortBy as string)
+        : DEFAULT_SORT_BY;
+
+    return {
+        cursor: query.cursor as string,
+        limit: Math.min(1000, Number(query.limit)),
+        sortBy,
+        sortOrder: query.sortOrder === 'desc' ? 'desc' : 'asc'
+    }
 }
 
 // filter
