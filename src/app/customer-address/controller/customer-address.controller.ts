@@ -4,6 +4,7 @@ import {validateBody} from "../../../lib/validation/validate";
 import {CreateAddressDTO, UpdateAddressDTO} from "../dto/customer-address.dto";
 import {injectable,inject} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
+import { sendSuccess } from '../../../lib/http/response';
 
 @injectable()
 export class CustomerAddressController{
@@ -51,6 +52,15 @@ export class CustomerAddressController{
                 message: "Address deleted successfully"});
         }catch(err){
             next(err)
+        }
+    }
+
+    getById = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const address = await this.customerAddressService.getById(Number(req.params.id));
+            sendSuccess(res, address);
+        } catch (err) {
+            next(err);
         }
     }
 }

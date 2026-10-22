@@ -27,6 +27,23 @@ export class CustomerAddressService {
         return addresses.map(toResponse);
     }
 
+    getById = async (id: number) => {
+        const address = await findAddressById(id);
+        if (!address) throw AddressNotFoundError;
+        return {
+            id: address.id,
+            userId: address.userId,
+            label: address.label,
+            country: address.country,
+            city: address.city,
+            street: address.street,
+            building: address.building,
+            apartmentNumber: address.apartmentNumber,
+            lat: address.lat,
+            lng: address.lng,
+        };
+    }
+
     createUserAddress = async(userId: number, data: CreateAddressDTO) => {
         if(data.isDefault) {
             await clearDefaultByUserId(userId);
