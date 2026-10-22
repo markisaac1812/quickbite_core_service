@@ -11,7 +11,7 @@ import { MemberBranch } from "../entity/member-branch.entity";
 import { generateOTP, hashOTP } from "../../auth/utils";
 import { createPasswordReset } from "../../auth/repository/auth.repo";
 import { toMs } from "../../../pkg/utils/time";
-import {getPermissionsDetailsByRoleName} from "../repository/permission.repo";
+import {getPermissionsByRoleName, getPermissionsDetailsByRoleName} from "../repository/permission.repo";
 import { RestaurantMember } from "../entity/restaurant-member.entity";
 import { Knex } from "knex";
 import { UserService} from "../../user/service/user.service";
@@ -183,6 +183,11 @@ export class MemberService {
 
     async getRolePermissions(roleName: string) {
         const permissions = await getPermissionsDetailsByRoleName(roleName);
+        return {role: roleName, permissions};
+    }
+
+    async getPermissionsByRole(roleName: string) {
+        const permissions = await getPermissionsByRoleName(roleName);
         return {role: roleName, permissions};
     }
 

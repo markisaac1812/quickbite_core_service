@@ -4,6 +4,8 @@ import { MemberService} from "../service/member.service";
 import { validateBody } from "../../../lib/validation/validate";
 import { inject,injectable } from "tsyringe";
 import { TOKENS } from "../../../lib/di/tokens";
+import { sendSuccess } from "../../../lib/http/response";
+import { RoleQueryRequiredError } from "../errors";
 
 @injectable()
 export class MemberController {
@@ -77,6 +79,18 @@ export class MemberController {
         try {
             const result = await this.memberService.getRolePermissions(req.params.role as string);
             res.status(200).send(result);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+
+    getPermissionsByRole = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const role = String(req.query.role ?? "");
+            if (!role) throw RoleQueryRequiredError;
+            const result = await this.memberService.getPermissionsByRole(role);
+            sendSuccess(res, result);
         }
         catch (error) {
             next(error);
