@@ -67,6 +67,11 @@ export class UpdateBranchDTO {
     deliveryRadius?: number;
 
     @IsOptional()
+    @IsInt()
+    @Min(0)
+    deliveryFee?: number;
+
+    @IsOptional()
     @IsEnum(BranchCurrency)
     currency?: BranchCurrency
 

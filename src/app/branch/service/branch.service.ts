@@ -1,4 +1,4 @@
-import { findNearbyBranches,createBranch,findBranchByRestaurantId, findBranchById, updateBranch, updateBranchStatus} from "../repository/branch.repository";
+import { findNearbyBranches,createBranch,findBranchesByRestaurant, findBranchById, updateBranch, updateBranchStatus} from "../repository/branch.repository";
 import {SystemRole} from "../../user/entity/enums";
 import {CreateBranchDTO, UpdateBranchStatusDTO} from "../dto/branch.dto";
 import {findRestaurantById} from "../../restaurant/repository/restaurant.repository";
@@ -6,6 +6,7 @@ import {UnAuthorisedError} from "../../../lib/auth/errors";
 import {RestaurantNotFoundError} from "../../restaurant/errors";
 import { BranchNotFoundError } from "../erros";
 import { injectable } from "tsyringe";
+import { BranchWithRestaurant } from "../types";
 
 
 @injectable()
@@ -55,7 +56,7 @@ export class BranchService {
         if(!restaurant){
             throw RestaurantNotFoundError;
         }
-        return await findBranchByRestaurantId(restaurantId);
+        return await findBranchesByRestaurant(restaurantId);
     }
     
     update = async (branchId: number,userId:number,userRole: SystemRole, data: Partial<CreateBranchDTO>) => {
@@ -94,6 +95,13 @@ export class BranchService {
 
         const updatedBranch = await updateBranchStatus(branchId, data);
         return updatedBranch;
+    }
+
+    findByIdWithRestaurant = async (branchId: number): Promise<BranchWithRestaurant | null> => {
+        const branch = await findBranchById(branchId);
+        if (!branch) return null;
+        const restaurant = await findRestaurantById(branch.restaurantId);
+        return {branch, restaurantStatus: restaurant?.status ?? "unknown"};
     }
 }
 

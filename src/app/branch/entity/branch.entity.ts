@@ -15,8 +15,10 @@ export class Branch{
     createdAt: Date;
     updatedAt: Date;
     deliveryRadius: number;
+    deliveryFee: number;
     currency: BranchCurrency;
     commission: number;
+    location?: string;
 
     constructor(data: Partial<Branch>) {
         this.id = data.id!;
@@ -33,6 +35,7 @@ export class Branch{
         this.createdAt = data.createdAt ?? new Date();
         this.updatedAt = data.updatedAt ?? new Date();
         this.deliveryRadius = data.deliveryRadius ?? 0;
+        this.deliveryFee = data.deliveryFee ?? 0;
         this.currency = data.currency!;
         this.commission = data.commission?? 0;
     }
