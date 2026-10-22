@@ -4,6 +4,7 @@ import {Request, Response, NextFunction} from 'express';
 import { validateBody } from "../../../lib/validation/validate";
 import {injectable,inject} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
+import { sendSuccess } from "../../../lib/http/response";
 
 @injectable()
 export class UserController{
@@ -29,6 +30,16 @@ export class UserController{
         }
         catch(err){
             next(err)
+        }
+    }
+
+
+    getAgentById = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const agent = await this.userService.getAgentById(Number(req.params.id));
+            sendSuccess(res, agent);
+        } catch (err) {
+            next(err);
         }
     }
 }
