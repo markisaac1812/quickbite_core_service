@@ -12,6 +12,8 @@ import { db } from "../../../lib/knex/knex";
 import {inject, injectable} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
 import {buildPaginationResult, FilterParams, PaginationParams} from "../../../lib/http/pagination/cursor-pagination";
+import {insertOutboxEvent} from "../../../lib/events/outbox.repo";
+import {EVENT_TYPES} from "../../../lib/events/event-types";
 
 @injectable()
 export class RestaurantService {
@@ -130,11 +132,22 @@ export class RestaurantService {
             throw RestaurantNotFoundError;
         }
 
-        //checks if role is admin
-        if(userRole !== SystemRole.SYSTEM_ADMIN) {
-            throw UnAuthorisedError;
+        const trx = await db.transaction();
+        try {
+            const updated = await updateRestaurantStatus(id, data.status, trx);
+            if (data.status === "suspended") {
+                await insertOutboxEvent(trx, {
+                    aggregateType: "restaurants",
+                    aggregateId: id,
+                    eventType: EVENT_TYPES.RESTAURANT_SUSPENDED,
+                    payload: {restaurantId: id},
+                });
+            }
+            await trx.commit();
+            return updated;
+        } catch (err) {
+            await trx.rollback();
+            throw err;
         }
-        const updatedRestaurant = await updateRestaurantStatus(id, data.status);
-        return updatedRestaurant;
     }
 }    
