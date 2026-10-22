@@ -189,7 +189,7 @@ export class AuthService {
 
         //2 create new access token and
         const payload = verifyRefreshToken(refreshToken);
-        const accessToken = createAccessToken({userId: payload.userId, role: payload.role, email: payload.email});
+        const accessToken = createAccessToken({userId: payload.userId, role: payload.role, email: payload.email,restaurantId: payload.restaurantId, restaurantRole: payload.restaurantRole, branchIds: payload.branchIds});
         return { accessToken };
     };
 
