@@ -6,10 +6,14 @@ import { BranchNotFoundError } from "../../branch/erros";
 import { createProduct, findProductById, findProductByrestaurantId, findProductsByBranch,updateProduct } from "../repository/product.repo";
 import { SystemRole } from "../../user/entity/enums";
 import { UnAuthorisedError } from "../../../lib/auth/errors";
-import { ProductNotFoundError } from "../error";
+import { ProductNotFoundError,InvalidReserveItemsError, outOfStockError } from "../error";
+import {db} from "../../../lib/knex/knex";
+import {insertOutboxEvent} from "../../../lib/events/outbox.repo";
+import {EVENT_TYPES} from "../../../lib/events/event-types";
 import { CreateProductDTO,UpdateProductDTO } from "../dto/product.dto";
 import { updateBranchDetails } from "../repository/product-branch.repo";
 import { injectable } from "tsyringe";
+import { BranchProductRow,ReserveStockApplied,ReserveStockInput,ReserveStockResult,OutOfStockItem } from "../types";
 
 @injectable()
 export class ProductService {
@@ -107,13 +111,137 @@ export class ProductService {
 
         let branchDetails;
         if (branchId && (data.price !== undefined || data.stock !== undefined || data.isAvailable !== undefined)) {
-            branchDetails = await updateBranchDetails(branchId, productId, {
-                price: data.price,
-                stock: data.stock,
-                isAvailable: data.isAvailable,
-            });
+            const trx = await db.transaction();
+            try {
+                const entity = await updateBranchDetails(branchId, productId, {
+                    price: data.price,
+                    stock: data.stock,
+                    isAvailable: data.isAvailable,
+                }, trx);
+                if (data.price !== undefined) {
+                    await insertOutboxEvent(trx, {
+                        aggregateType: "product_branch_details",
+                        aggregateId: `${branchId}:${productId}`,
+                        eventType: EVENT_TYPES.PRODUCT_PRICE_CHANGED,
+                        payload: {branchId, productId, newPrice: entity.price},
+                    });
+                }
+                if (data.stock !== undefined || data.isAvailable !== undefined) {
+                    await insertOutboxEvent(trx, {
+                        aggregateType: "product_branch_details",
+                        aggregateId: `${branchId}:${productId}`,
+                        eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
+                        payload: {
+                            branchId,
+                            productId,
+                            newStock: entity.stock,
+                            isAvailable: entity.isAvailable,
+                        },
+                    });
+                }
+                await trx.commit();
+                branchDetails = entity;
+            } catch (err) {
+                await trx.rollback();
+                throw err;
+            }
         }
 
         return {product: updatedProduct, branchDetails};
+    }
+
+    findByBranchAndIds = async (branchId: number, productIds: number[]): Promise<BranchProductRow[]> => {
+        if (productIds.length === 0) return [];
+        const rows = await db("product_branch_details as pbd")
+            .join("products as p", "p.id", "pbd.product_id")
+            .where("pbd.branch_id", branchId)
+            .whereIn("pbd.product_id", productIds)
+            .whereNull("p.deleted_at")
+            .select(
+                "pbd.product_id",
+                "p.name",
+                "p.image_url",
+                "pbd.price",
+                "pbd.stock",
+                "pbd.is_available",
+            );
+        return rows.map((r: any) => ({
+            productId: r.product_id,
+            name: r.name,
+            imageUrl: r.image_url,
+            price: r.price,
+            stock: r.stock,
+            isAvailable: r.is_available,
+        }));
+    }
+
+    /**
+     * Atomically decrements branch stock for each item. Locks the rows FOR UPDATE
+     * and emits product.stock.changed per decrement so order-service invalidates
+     * its cache.
+     */
+    reserveStock = async (branchId: number, items: ReserveStockInput[]): Promise<ReserveStockResult> => {
+        const sanitized = items
+            .map((it) => ({productId: Number(it.productId), quantity: Number(it.quantity)}))
+            .filter((it) => Number.isInteger(it.productId) && Number.isInteger(it.quantity) && it.quantity > 0);
+
+        if (sanitized.length !== items.length) {
+            throw InvalidReserveItemsError;
+        }
+
+        const productIds = sanitized.map((i) => i.productId);
+
+        const trx = await db.transaction();
+        try {
+            const rows = await trx("product_branch_details")
+                .where("branch_id", branchId)
+                .whereIn("product_id", productIds)
+                .select("product_id", "stock", "is_available")
+                .forUpdate();
+
+            const byProduct = new Map<number, {stock: number; isAvailable: boolean}>();
+            for (const r of rows) byProduct.set(Number(r.product_id), {stock: r.stock, isAvailable: r.is_available});
+
+            const offending: OutOfStockItem[] = [];
+            for (const it of sanitized) {
+                const current = byProduct.get(it.productId);
+                if (!current || !current.isAvailable) {
+                    offending.push({productId: it.productId, requested: it.quantity, available: 0});
+                    continue;
+                }
+                if (current.stock < it.quantity) {
+                    offending.push({productId: it.productId, requested: it.quantity, available: current.stock});
+                }
+            }
+
+            if (offending.length > 0) {
+                throw outOfStockError(offending);
+            }
+
+            const applied: ReserveStockApplied[] = [];
+            for (const it of sanitized) {
+                const newStock = byProduct.get(it.productId)!.stock - it.quantity;
+                await trx("product_branch_details")
+                    .where("branch_id", branchId)
+                    .where("product_id", it.productId)
+                    .update({stock: newStock});
+                applied.push({productId: it.productId, newStock});
+            }
+
+            for (const a of applied) {
+                await insertOutboxEvent(trx, {
+                    aggregateType: "product_branch_details",
+                    aggregateId: `${branchId}:${a.productId}`,
+                    eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
+                    payload: {branchId, productId: a.productId, newStock: a.newStock},
+                });
+            }
+
+            await trx.commit();
+            return {ok: true, applied};
+        } catch (err) {
+            await trx.rollback();
+            throw err;
+        }
     }
 }
