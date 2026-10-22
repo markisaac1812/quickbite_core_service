@@ -28,6 +28,7 @@ Knex migrations are versioned files that create or change the database structure
 
 ```powershell
 npx tsx ./node_modules/knex/bin/cli.js migrate:latest --knexfile src/common/knex/knexfile.ts
+npx tsx ./node_modules/knex/bin/cli.js migrate:make create_users_table --knexfile src/common/knex/knexfile.ts
 ```
 
 ### Prisma
