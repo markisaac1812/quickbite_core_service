@@ -5,6 +5,7 @@ import {TOKENS} from "../../lib/di/tokens";
 import {container} from "../../lib/di/container";
 import { BranchController } from "./controller/branch.controller";
 import { withCache } from "../../lib/cache/withCache";
+import { requireInternalApiKey } from "../../lib/auth/api-key";
 
 export const branchRouter = Router();
 
@@ -15,3 +16,7 @@ branchRouter.get("/branches/nearby",withCache(), branchController.findNearby);
 branchRouter.get("/restaurants/:restaurantId/branches", branchController.findByRestaurantId);
 branchRouter.patch("/branches/:branchId",authenticate,requireBranchAccess('branchId'),rbac({resource:"core:branch", action:"update"}), branchController.update);
 branchRouter.patch("/branches/:id/status",authenticate, branchController.updateStatus);
+
+// Internal (service-to-service)
+branchRouter.get('/internal/branches/:id', requireInternalApiKey, branchController.findByIdWithRestaurant);
+    
