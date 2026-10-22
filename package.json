@@ -2,17 +2,26 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js"
+    "worker:dev": "tsx watch src/worker",
+    "start": "node dist/server.js",
+    "worker": "node dist/worker.js",
+    "migrate": "knex --knexfile src/lib/knex/knexfile.ts migrate:latest",
+    "migrate:rollback": "knex --knexfile src/lib/knex/knexfile.ts migrate:rollback",
+    "migrate:status": "knex --knexfile src/lib/knex/knexfile.ts migrate:status",
+    "migrate:make": "knex --knexfile src/lib/knex/knexfile.ts migrate:make"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
     "@types/helmet": "^0.0.48",
     "@types/ioredis": "^4.28.10",
+    "amqp-connection-manager": "^5.0.1",
+    "amqplib": "^2.2.0",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "croner": "^10.0.1",
     "dotenv": "^18.0.1",
     "eslint": "^10.11.0",
     "express": "^5.2.1",
@@ -29,11 +38,13 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.8",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.2",
+    "ts-node": "^10.9.2",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }
