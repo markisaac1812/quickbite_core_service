@@ -33,6 +33,12 @@ export async function findRestaurantById(id: number): Promise<Restaurant | undef
     return row ? toEntity(row) : undefined;
 }
 
+export async function findRestaurantsByIds(ids: number[]): Promise<Restaurant[]> {
+    if (ids.length === 0) return [];
+    const rows = await db("restaurants").select(RESTAURANT_COLUMNS).whereIn("id", ids);
+    return rows.map(toEntity);
+}
+
 export async function createRestaurant(restaurant: Partial<Restaurant>,conn:Knex = db): Promise<Restaurant> {
     const [row] = await conn("restaurants").insert({
         owner_id: restaurant.ownerId,

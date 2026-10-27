@@ -5,6 +5,7 @@ import { container } from "../../lib/di/container";
 import { TOKENS } from "../../lib/di/tokens";
 import { MemberController } from "./controller/member.controller";    
 import { requireInternalApiKey } from "../../lib/auth/api-key";
+import { withCache } from "../../lib/cache/withCache";
 
 export const rbacRouter = Router();
     
@@ -13,7 +14,7 @@ const memberController = container.resolve<MemberController>(TOKENS.MemberContro
 rbacRouter.get('/roles/:role/permissions',memberController.getRolePermissions);
 
 // Internal (service-to-service)
-rbacRouter.get('/internal/rbac/permissions', requireInternalApiKey, memberController.getPermissionsByRole);
+rbacRouter.get('/internal/rbac/permissions', requireInternalApiKey, withCache(300), memberController.getPermissionsByRole);
     
 
 rbacRouter.post('/restaurants/:restaurantId/members',
