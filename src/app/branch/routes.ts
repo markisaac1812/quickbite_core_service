@@ -19,4 +19,5 @@ branchRouter.patch("/branches/:id/status",authenticate, branchController.updateS
 
 // Internal (service-to-service)
 branchRouter.get('/internal/branches/:id', requireInternalApiKey, branchController.findByIdWithRestaurant);
+branchRouter.get('/internal/branches', requireInternalApiKey, withCache(60), branchController.findByIdsWithRestaurant);
     

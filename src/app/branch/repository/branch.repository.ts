@@ -61,6 +61,12 @@ export async function findBranchById(id: number): Promise<Branch | undefined> {
     return row ? toEntity(row) : undefined;
 }
 
+export async function findBranchesByIds(ids: number[]): Promise<Branch[]> {
+    if (ids.length === 0) return [];
+    const rows = await db("restaurant_branches").select(BRANCH_COLUMNS).whereIn("id", ids);
+    return rows.map(toEntity);
+}
+
 export async function updateBranch(id: number, data: Record<string, any>, conn: Knex = db): Promise<Branch> {
     const [row] = await conn("restaurant_branches").where("id", id).update({
         label: data.label,

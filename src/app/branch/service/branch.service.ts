@@ -1,12 +1,16 @@
-import { findNearbyBranches,createBranch,findBranchesByRestaurant, findBranchById, updateBranch, updateBranchStatus} from "../repository/branch.repository";
+import { findNearbyBranches,createBranch,findBranchesByRestaurant, findBranchById, updateBranch, updateBranchStatus, findBranchesByIds} from "../repository/branch.repository";
 import {SystemRole} from "../../user/entity/enums";
-import {CreateBranchDTO, UpdateBranchStatusDTO} from "../dto/branch.dto";
-import {findRestaurantById} from "../../restaurant/repository/restaurant.repository";
+import {CreateBranchDTO, UpdateBranchStatusDTO,UpdateBranchDTO} from "../dto/branch.dto";
+import {findRestaurantById,findRestaurantsByIds} from "../../restaurant/repository/restaurant.repository";
 import {UnAuthorisedError} from "../../../lib/auth/errors";
 import {RestaurantNotFoundError} from "../../restaurant/errors";
 import { BranchNotFoundError } from "../erros";
 import { injectable } from "tsyringe";
 import { BranchWithRestaurant } from "../types";
+import {db} from "../../../lib/knex/knex";
+import {insertOutboxEvent} from "../../../lib/events/outbox.repo";
+import {EVENT_TYPES} from "../../../lib/events/event-types";
+import {cacheProvider} from "../../../lib/cache/init";
 
 
 @injectable()
@@ -59,49 +63,96 @@ export class BranchService {
         return await findBranchesByRestaurant(restaurantId);
     }
     
-    update = async (branchId: number,userId:number,userRole: SystemRole, data: Partial<CreateBranchDTO>) => {
-        // find branch by id
+    update = async (branchId: number, userId: number, userRole: SystemRole, data: UpdateBranchDTO) => {
         const branch = await findBranchById(branchId);
-        if(!branch){
+        if (!branch) {
             throw BranchNotFoundError;
         }
 
-        // find its restaurant
         const restaurant = await findRestaurantById(branch.restaurantId);
-        if(!restaurant){
-            throw RestaurantNotFoundError;
+        if (!restaurant) throw RestaurantNotFoundError;
+        if (userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
+            throw UnAuthorisedError;
         }
 
-        // checks ownership of restaurant
-        if(userRole != SystemRole.SYSTEM_ADMIN && (Number(restaurant.ownerId) !== Number(userId)) ){
-            throw UnAuthorisedError
+        const trx = await db.transaction();
+        try {
+            const updated = await updateBranch(branchId, data, trx);
+            await insertOutboxEvent(trx, {
+                aggregateType: "restaurant_branches",
+                aggregateId: branchId,
+                eventType: EVENT_TYPES.BRANCH_UPDATED,
+                payload: {branchId},
+            });
+            await trx.commit();
+            await cacheProvider.del(`GET:/api/internal/branches/${branchId}`);
+            return updated;
+        } catch (err) {
+            await trx.rollback();
+            throw err;
         }
-
-        const updatedBranch = await updateBranch(branchId, data);
-        return updatedBranch;
     }
 
-    updateStatus = async (branchId: number,userRole: SystemRole, data: UpdateBranchStatusDTO) => {
-        // find branch by id
+    updateStatus = async (branchId: number, userRole: SystemRole, data: UpdateBranchStatusDTO) => {
+        if (userRole !== SystemRole.SYSTEM_ADMIN) {
+            throw UnAuthorisedError;
+        }
+
         const branch = await findBranchById(branchId);
-        if(!branch){
+        if (!branch) {
             throw BranchNotFoundError;
         }
 
-        // checks ownership of restaurant
-        if(userRole != SystemRole.SYSTEM_ADMIN){
-            throw UnAuthorisedError
+        const trx = await db.transaction();
+        try {
+            const updated = await updateBranchStatus(branchId, data, trx);
+            const eventType = data.isActive === false
+                ? EVENT_TYPES.BRANCH_DEACTIVATED
+                : EVENT_TYPES.BRANCH_UPDATED;
+            await insertOutboxEvent(trx, {
+                aggregateType: "restaurant_branches",
+                aggregateId: branchId,
+                eventType,
+                payload: {branchId},
+            });
+            await trx.commit();
+            await cacheProvider.del(`GET:/api/internal/branches/${branchId}`);
+            return updated;
+        } catch (err) {
+            await trx.rollback();
+            throw err;
         }
-
-        const updatedBranch = await updateBranchStatus(branchId, data);
-        return updatedBranch;
     }
 
     findByIdWithRestaurant = async (branchId: number): Promise<BranchWithRestaurant | null> => {
         const branch = await findBranchById(branchId);
         if (!branch) return null;
         const restaurant = await findRestaurantById(branch.restaurantId);
-        return {branch, restaurantStatus: restaurant?.status ?? "unknown"};
+        if(!restaurant) return null;
+        return {
+            branch,
+            restaurantStatus: restaurant.status,
+            restaurantOwnerId: Number(restaurant.ownerId),
+        };
+    }
+
+    findByIdsWithRestaurant = async (branchIds: number[]): Promise<BranchWithRestaurant[]> => {
+        if (branchIds.length === 0) return [];
+        const branches = await findBranchesByIds(branchIds);
+        if (branches.length === 0) return [];
+        const restaurants = await findRestaurantsByIds(Array.from(new Set(branches.map((b) => b.restaurantId))));
+        const byId = new Map(restaurants.map((r) => [Number(r.id), r]));
+        const out: BranchWithRestaurant[] = [];
+        for (const branch of branches) {
+            const restaurant = byId.get(Number(branch.restaurantId));
+            if (!restaurant) continue;
+            out.push({
+                branch,
+                restaurantStatus: restaurant.status,
+                restaurantOwnerId: Number(restaurant.ownerId),
+            });
+        }
+        return out;
     }
 }
 
