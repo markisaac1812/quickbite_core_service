@@ -18,6 +18,17 @@ export async function insertOutboxEvent(conn: Knex, input: InsertOutboxInput): P
     });
 }
 
+export async function insertOutboxEvents(conn: Knex, inputs: InsertOutboxInput[]): Promise<void> {
+    if (inputs.length === 0) return;
+    await conn("events_outbox").insert(inputs.map((i) => ({
+        aggregate_type: i.aggregateType,
+        aggregate_id: String(i.aggregateId),
+        event_type: i.eventType,
+        event_id: randomUUID(),
+        payload: JSON.stringify(i.payload),
+    })));
+}
+
 /**
  * Dispatcher claim — selects a batch of undispatched rows and locks them so
  * another dispatcher process won't pick up the same rows. Caller is
