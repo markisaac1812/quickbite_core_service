@@ -111,4 +111,18 @@ export class ProductController{
             next(err);
         }
     }
+
+    releaseStock = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const branchId = Number(req.params.id);
+            const items = req.body?.items;
+            if (!Array.isArray(items) || items.length === 0) {
+                throw InvalidReserveItemsError;
+            }
+            const result = await this.productService.releaseStock(branchId, items);
+            sendSuccess(res, result);
+        } catch (err) {
+            next(err);
+        }
+    }
 }
