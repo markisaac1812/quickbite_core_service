@@ -127,6 +127,10 @@ export class RestaurantService {
     }
 
     updateRestaurantStatus = async (userRole:SystemRole, id: number, data: UpdateRestaurantStatusDTO) => {
+        if (userRole !== SystemRole.SYSTEM_ADMIN) {
+            throw UnAuthorisedError;
+        }
+
         const restaurant = await findRestaurantById(id);
         if(!restaurant) {
             throw RestaurantNotFoundError;

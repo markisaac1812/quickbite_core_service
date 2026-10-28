@@ -88,22 +88,7 @@ export class BranchController {
             const id = Number(req.params.id);
             const result = await this.branchService.findByIdWithRestaurant(id);
             if (!result) throw BranchNotFoundError;
-            const {branch, restaurantStatus} = result;
-            sendSuccess(res, {
-                id: branch.id,
-                restaurantId: branch.restaurantId,
-                restaurantStatus,
-                region: branch.countryCode,
-                isActive: branch.isActive,
-                acceptOrders: branch.acceptOrders,
-                deliveryFee: branch.deliveryFee,
-                commissionBps: branch.commission,
-                currency: branch.currency,
-                lat: Number(branch.lat),
-                lng: Number(branch.lng),
-                name: branch.label,
-                addressText: branch.addressText,
-            });
+            sendSuccess(res, toInternalBranchDTO(result));
         } catch (err) {
             next(err);
         }
