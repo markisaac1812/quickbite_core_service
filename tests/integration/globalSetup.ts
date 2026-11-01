@@ -4,10 +4,12 @@
 import "../setup-env";
 import {db} from "../../src/lib/knex/knex";
 import {env} from "../../src/lib/config/env";
-import {assertTestDatabase} from "../helpers/db";
+import {assertTestDatabase, restorePostgisSrid, seedRbacCatalog} from "../helpers/db";
 
 export default async function globalSetup() {
     assertTestDatabase(env.db.name);
     await db.migrate.latest();
+    await seedRbacCatalog();
+    await restorePostgisSrid();
     console.log(`Global setup for integration tests completed (db: ${env.db.name}).`);
 }
