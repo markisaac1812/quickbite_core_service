@@ -1,15 +1,24 @@
 import {PaginationParams, FilterParams} from "./cursor-pagination";
 
 const DEFAULT_SORT_BY = 'createdAt';
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 1000;
 
 export function parsePaginationQuery(query: Record<string, any>, allowedSortBy: string[] = ['createdAt']): PaginationParams {
     const sortBy = allowedSortBy.includes(query.sortBy as string)
         ? (query.sortBy as string)
         : DEFAULT_SORT_BY;
 
+    // A missing / non-numeric / non-positive limit used to become NaN, which
+    // knex silently drops (no LIMIT at all) and which made hasMore always false.
+    const parsedLimit = Math.floor(Number(query.limit));
+    const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.min(MAX_LIMIT, parsedLimit)
+        : DEFAULT_LIMIT;
+
     return {
         cursor: query.cursor as string,
-        limit: Math.min(1000, Number(query.limit)),
+        limit,
         sortBy,
         sortOrder: query.sortOrder === 'desc' ? 'desc' : 'asc'
     }

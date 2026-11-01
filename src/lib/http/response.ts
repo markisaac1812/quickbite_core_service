@@ -20,6 +20,5 @@ export function sendSuccess<T>(res: Response,data: T, statusCode = 200, meta?: O
 }
 
 export function sendPaginated<T>(res: Response, data: T[], meta: PaginationMeta) {
-    res.status(200).json({success: true, data: data, meta});
     sendSuccess(res, data, 200, meta);
 }
