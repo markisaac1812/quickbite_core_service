@@ -4,4 +4,7 @@ module.exports = {
   roots: ["<rootDir>/tests/unit"],
   testMatch: ["**/*.test.ts", "**/*.unit.ts"],
   setupFiles: ["<rootDir>/tests/setup-env.ts"],
+  transform: {
+    "^.+\\.ts$":["ts-jest", {tsconfig: "tsconfig.test.json"}]
+  },
 }

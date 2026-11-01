@@ -9,7 +9,7 @@ module.exports = {
   maxWorkers: 1,
   forceExit: true,
   transform: {
-    "^.+\\.tsx$":["ts-jest", {tsconfig: "tsconfig.test.json"}]
+    "^.+\\.ts$":["ts-jest", {tsconfig: "tsconfig.test.json"}]
   },
 
 }
