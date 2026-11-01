@@ -2,6 +2,8 @@
   "scripts": {
     "test": "jest",
     "test:integration": "jest --config jest.integration.config.js",
+    "test:all": "npm test && npm run test:integration",
+    "test:coverage": "jest -c jest.coverage.config.js --coverage",
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
     "worker:dev": "tsx watch src/worker",
