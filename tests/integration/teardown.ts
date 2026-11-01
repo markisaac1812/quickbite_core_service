@@ -1,8 +1,7 @@
-import {config} from "dotenv";
-import path from "path";
+// MUST stay the first import — see globalSetup.ts.
+import "../setup-env";
 import {db} from "../../src/lib/knex/knex";
-config({path: path.resolve(__dirname, "../../.env.test")});
 
-export default async function globalSetup() {
+export default async function globalTeardown() {
     await db.destroy();
 }

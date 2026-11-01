@@ -1,10 +1,13 @@
-import {config} from "dotenv";
-import path from "path";
+// MUST stay the first import. Imports are hoisted above any other statement,
+// so a `config()` call further down would run only after env.ts/knex had
+// already read the dev `.env` — and migrate the wrong database.
+import "../setup-env";
 import {db} from "../../src/lib/knex/knex";
-config({path: path.resolve(__dirname, "../../.env.test")});
+import {env} from "../../src/lib/config/env";
+import {assertTestDatabase} from "../helpers/db";
 
 export default async function globalSetup() {
-    await db.migrate.latest()
-  // Perform any global setup tasks here, such as initializing databases or services
-  console.log("Global setup for integration tests completed.");
+    assertTestDatabase(env.db.name);
+    await db.migrate.latest();
+    console.log(`Global setup for integration tests completed (db: ${env.db.name}).`);
 }
