@@ -17,7 +17,7 @@ import { Knex } from "knex";
 import { UserService} from "../../user/service/user.service";
 import {injectable,inject} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
-import { IEmailProvider } from "../../../pkg/email/email.interface";
+import type { IEmailProvider } from "../../../pkg/email/email.interface";
 import {memberInvitationEmail} from "../templates/member-invitation";
 
 @injectable()

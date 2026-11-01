@@ -7,12 +7,12 @@ import {SystemRole} from "../../user/entity/enums";
 import {UserService } from "../../user/service/user.service";
 import {findUserByEmail,updateUserPassword} from "../../user/repository/user.repo";
 import {LoginDTO, RegisterDTO,ForgotPasswordDTO,ResetPasswordDTO} from "../dto/auth.dto";
-import {UserAlreadyExistsError, CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError, InvalidRefreshTokenError,RestaurantDataMissingError} from "../errors";
+import {CannotSignupAsSystemAdmin,InvalidCredentialsError, InvalidOTPError, InvalidRefreshTokenError,RestaurantDataMissingError} from "../errors";
 import { createPasswordReset, findLatestPasswordResetByUserId, updatePasswordResetConsumedAt } from "../repository/auth.repo";
 import {hashPassword, createAccessToken, createRefreshToken,comparePassword,generateOTP,hashOTP,verifyRefreshToken} from "../utils";
 import {injectable,inject} from "tsyringe";
 import {TOKENS} from "../../../lib/di/tokens";
-import {IEmailProvider} from "../../../pkg/email/email.interface";
+import type {IEmailProvider} from "../../../pkg/email/email.interface";
 import {passwordResetEmail} from "../templates/password-reset";
 
 @injectable()
@@ -187,8 +187,15 @@ export class AuthService {
             throw InvalidRefreshTokenError;
         }
 
+        // an expired, tampered or wrong-secret token is a 401, not a crash
+        let payload;
+        try {
+            payload = verifyRefreshToken(refreshToken);
+        } catch {
+            throw InvalidRefreshTokenError;
+        }
+
         //2 create new access token and
-        const payload = verifyRefreshToken(refreshToken);
         const accessToken = createAccessToken({userId: payload.userId, role: payload.role, email: payload.email,restaurantId: payload.restaurantId, restaurantRole: payload.restaurantRole, branchIds: payload.branchIds});
         return { accessToken };
     };

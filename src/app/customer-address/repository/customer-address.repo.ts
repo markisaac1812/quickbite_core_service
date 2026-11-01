@@ -62,7 +62,7 @@ export async function createAddress(address: Partial<CustomerAddress>): Promise<
         is_default: address.isDefault,
     }).returning(CUSTOMER_ADDRESS_COLUMNS);
 
-    return toEntity(row[0]);
+    return toEntity(row);
 }
 
 export async function clearDefaultByUserId(userId: number): Promise<void> {
