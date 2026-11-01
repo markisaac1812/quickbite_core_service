@@ -1,3 +1,7 @@
+/**
+ * Unit tests: pure functions / middleware only — no DB, Redis, broker or network.
+ * Run with `npm test`.
+ */
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
@@ -5,6 +9,8 @@ module.exports = {
   testMatch: ["**/*.test.ts", "**/*.unit.ts"],
   setupFiles: ["<rootDir>/tests/setup-env.ts"],
   transform: {
-    "^.+\\.ts$":["ts-jest", {tsconfig: "tsconfig.test.json"}]
+    // 151002: ts-jest warns about `module: nodenext` (from tsconfig.json);
+    // the package has no "type": "module", so it compiles to CommonJS anyway.
+    "^.+\\.ts$": ["ts-jest", {tsconfig: "tsconfig.test.json", diagnostics: {ignoreCodes: [151002]}}],
   },
-}
+};
