@@ -2,6 +2,22 @@ import {IsEmail, MinLength, IsString, IsStrongPassword, MaxLength, IsEnum, IsNot
 import {SystemRole} from "../../user/entity/enums";
 import { Type } from "class-transformer";
 
+export class RestaurantRegisterDTO {
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(1)
+    name!: string;
+
+    @IsString()
+    @IsOptional()
+    logoURL!: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(1)
+    primaryCountry!: string;
+}
+
 export class RegisterDTO {
     @IsEmail()
     email!: string;
@@ -69,21 +85,4 @@ export class ResetPasswordDTO {
         message: 'Password is not strong enough. It must contain at least 8 characters, one uppercase letter, one lowercase letter, one number.',
     })
     newPassword!: string;
-}
-
-export class RestaurantRegisterDTO {
-    @IsString()
-    @IsNotEmpty()
-    @MinLength(1)
-    name!: string;
-
-    @IsString()
-    @IsOptional()
-    logoURL!: string;
-
-
-    @IsString()
-    @IsNotEmpty()
-    @MinLength(1)
-    primaryCountry!: string;
 }

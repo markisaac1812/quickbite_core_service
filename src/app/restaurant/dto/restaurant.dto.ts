@@ -2,25 +2,6 @@ import { Type } from "class-transformer";
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsStrongPassword, MaxLength, MinLength, ValidateNested } from "class-validator";
 import { RestaurantStatus } from "../entity/enums";
 
-export class CreateRestaurantDTO {
-    @ValidateNested()
-    @Type(() => CreateRestaurantOwnerDTO)
-    owner!: CreateRestaurantOwnerDTO
-
-    @IsString()
-    @IsNotEmpty()
-    name!:string;
-
-    
-    @IsString()
-    @IsOptional()
-    logoURL?: string;
-
-    @IsNotEmpty()
-    @IsString()
-    primaryCountry!: string;
-}
-
 export class CreateRestaurantOwnerDTO {
 
     @IsNotEmpty()
@@ -47,6 +28,25 @@ export class CreateRestaurantOwnerDTO {
     })
     password!: string;
 
+}
+
+export class CreateRestaurantDTO {
+    @ValidateNested()
+    @Type(() => CreateRestaurantOwnerDTO)
+    owner!: CreateRestaurantOwnerDTO
+
+    @IsString()
+    @IsNotEmpty()
+    name!:string;
+
+    
+    @IsString()
+    @IsOptional()
+    logoURL?: string;
+
+    @IsNotEmpty()
+    @IsString()
+    primaryCountry!: string;
 }
 export class UpdateRestaurantDTO {
     @IsString()
