@@ -1,0 +1,92 @@
+# Host ports for postgres/redis/rabbitmq are shifted (+1) because native
+# Postgres (5432), Redis (6379) and RabbitMQ (5672/15672) already run on this
+# machine. Containers talk to each other on the internal ports via service names.
+
+x-core-app: &core-app
+  build: .
+  image: quickbite-core-service
+  env_file:
+    - .env
+  environment:
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    # The image only ships compiled JS, so migrations run from dist/.
+    DB_MIGRATIONS_DIRECTORY: dist/migrations
+    DB_MIGRATIONS_EXTENSION: js
+
+services:
+  postgres:
+    # PostGIS needed: restaurant_branches uses geography(Point) + GIST index.
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      # Values come from .env so they always match what the app connects with.
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # -h 127.0.0.1 checks over TCP: during first-boot init, postgres runs a
+      # temporary socket-only server, which would otherwise report "ready" too early.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      retries: 10
+
+  # One-shot: applies knex migrations, then exits. App + worker wait for it.
+  migrate:
+    <<: *core-app
+    command: ["node", "node_modules/knex/bin/cli.js", "--knexfile", "dist/lib/knex/knexfile.js", "migrate:latest"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  core-service:
+    <<: *core-app
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  core-worker:
+    <<: *core-app
+    command: ["node", "dist/worker.js"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

@@ -1,0 +1,43 @@
+# Anything matched here is NOT sent to the Docker build context.
+
+# Node deps are reinstalled inside the image — the host's (Windows) native
+# builds like bcrypt would break on Alpine.
+node_modules
+
+# Compiled output is produced in the builder stage — never copy host's.
+dist
+
+# Local secrets must not bake into the image; passed at runtime via env_file.
+.env
+.env.*
+!.env.example
+
+# Tests / coverage aren't part of the build (tsconfig only includes src).
+tests
+coverage
+jest*.config.js
+tsconfig.test.json
+
+# IDE / editor cruft
+.idea
+.vscode
+*.iml
+
+# Git history isn't needed by the build.
+.git
+.gitignore
+
+# Docs / notes
+*.md
+workflow
+
+# Logs and OS junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Docker files themselves don't belong in the image
+Dockerfile
+.dockerignore
+docker-compose.yml
