@@ -1,6 +1,6 @@
 import {plainToInstance} from "class-transformer";
 import {validate, ValidationError} from "class-validator";
-import {AppError} from "../error/AppError";
+import {AppError} from "../error/appError";
 
 // Nested DTOs (@ValidateNested) report their failures on `children`, not on
 // the parent's `constraints` — walk the whole tree so they are not dropped.

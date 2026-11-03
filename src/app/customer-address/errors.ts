@@ -1,3 +1,3 @@
-import {AppError} from "../../lib/error/AppError";
+import {AppError} from "../../lib/error/appError";
 
 export const AddressNotFoundError = new AppError('Address not found', 404);
