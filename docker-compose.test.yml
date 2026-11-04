@@ -1,0 +1,58 @@
+services:
+
+  # -------------------------------------------------------------------
+  # Postgres 16 WITH PostGIS — a migration runs `CREATE EXTENSION postgis`
+  # which the plain postgres:16 image doesn't ship.
+  # -------------------------------------------------------------------
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: quickbite_core_test
+    healthcheck:
+      # Command that returns 0 when Postgres is ready.
+      test: ["CMD-SHELL", "pg_isready -U postgres -d quickbite_core_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  test:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: quickbite_core_test
+      DB_MIGRATION_DIRECTORY: src/migrations
+      DB_MIGRATION_EXTENSION: ts
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      ACCESS_SECRET: test-access-secret
+      REFRESH_SECRET: test-refresh-secret
+      ACCESS_EXPIRES_IN: 15m
+      REFRESH_EXPIRES_IN: 7d
+      MAILJET_API_KEY: test
+      MAILJET_SECRET_KEY: test
+      MAILJET_FROM_EMAIL: test@example.com
+      MAILJET_FROM_NAME: Test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Install deps, compile, then run unit and integration suites in order.
+    # "set -e" stops at the first failing command so the job fails fast.
+    command: sh -e -c "npm ci && npm run build && npm test && npm run test:integration"
