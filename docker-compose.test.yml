@@ -62,6 +62,13 @@ services:
       INTERNAL_API_KEY: test-internal-key
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
       RABBITMQ_CORE_EVENTS_EXCHANGE: core-services.events.test
+      # Fake AWS values — the storage provider is stubbed in tests.
+      AWS_REGION: eu-north-1
+      AWS_S3_BUCKET: quickbite-test-bucket
+      AWS_S3_PREFIX: restaurants
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      MEDIA_MAX_FILE_SIZE_MB: "1"
     depends_on:
       postgres:
         condition: service_healthy

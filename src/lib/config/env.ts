@@ -33,6 +33,17 @@ const schema = z.object({
     // Cron expression for the outbox drain schedule. 6-field form; "* * * * * *" = every second.
     OUTBOX_DRAIN_CRON: z.string().default("* * * * * *"),
     OUTBOX_BATCH_SIZE: z.string().default("50"),
+    // AWS / S3 — media uploads.
+    AWS_REGION: z.string().default("eu-north-1"),
+    AWS_S3_BUCKET: z.string(),
+    // Folder (key prefix) inside the bucket that uploads go under.
+    AWS_S3_PREFIX: z.string().default("restaurants"),
+    // Leave empty to use the SDK default credential chain (e.g. an IAM role in prod).
+    AWS_ACCESS_KEY_ID: z.string().default(""),
+    AWS_SECRET_ACCESS_KEY: z.string().default(""),
+    MEDIA_MAX_FILE_SIZE_MB: z.string().default("5"),
+    // How long a presigned upload URL stays valid.
+    MEDIA_UPLOAD_URL_EXPIRES_IN: z.string().default("300"),
 });
 
 const parsed = schema.parse(process.env); 
@@ -78,6 +89,17 @@ export const env = {
         exchange: parsed.RABBITMQ_CORE_EVENTS_EXCHANGE,
         drainCron: parsed.OUTBOX_DRAIN_CRON,
         batchSize: Number(parsed.OUTBOX_BATCH_SIZE),
+    },
+    aws: {
+        region: parsed.AWS_REGION,
+        s3Bucket: parsed.AWS_S3_BUCKET,
+        s3Prefix: parsed.AWS_S3_PREFIX.replace(/^\/+|\/+$/g, ""),
+        accessKeyId: parsed.AWS_ACCESS_KEY_ID,
+        secretAccessKey: parsed.AWS_SECRET_ACCESS_KEY,
+    },
+    media: {
+        maxFileSizeBytes: Number(parsed.MEDIA_MAX_FILE_SIZE_MB) * 1024 * 1024,
+        uploadUrlExpiresIn: Number(parsed.MEDIA_UPLOAD_URL_EXPIRES_IN),
     },
 }
 
