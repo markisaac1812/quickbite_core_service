@@ -51,6 +51,21 @@ export function rbac(options: RBACOptions) {
     }
 }
 
+/** Allows only users whose system role is one of `roles`. Use after authenticate. */
+export function requireSystemRoles(...roles: SystemRole[]) {
+    return (req: Request, res: Response, next: NextFunction) => {
+        if (!req.user) {
+            return next(NotAuthenticatedError);
+        }
+        if (!roles.includes(req.user.role as SystemRole)) {
+            return res.status(403).json({
+                error: "Permission denied",
+            })
+        }
+        next();
+    }
+}
+
 export function requireRestaurantMember(paramName: string= 'restaurantId') {
     return async(req: Request, res: Response, next: NextFunction) => {
         const restaurantId = parseInt(req.params[paramName] as string); // req.params.restaurantId
