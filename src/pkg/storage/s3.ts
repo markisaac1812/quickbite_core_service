@@ -9,16 +9,18 @@ interface S3Config {
     // chain (env vars, shared config, IAM role on EC2/ECS).
     accessKeyId?: string;
     secretAccessKey?: string;
+    /** CDN base URL (e.g. "https://xxxx.cloudfront.net") serving the bucket root. Defaults to the S3 URL. */
+    publicBaseUrl?: string;
 }
 
 export class S3StorageProvider implements IStorageProvider {
     private client: S3Client;
     private bucket: string;
-    private region: string;
+    private publicBaseUrl: string;
 
     constructor(config: S3Config) {
         this.bucket = config.bucket;
-        this.region = config.region;
+        this.publicBaseUrl = config.publicBaseUrl || `https://${config.bucket}.s3.${config.region}.amazonaws.com`;
         this.client = new S3Client({
             region: config.region,
             credentials: config.accessKeyId && config.secretAccessKey
@@ -70,6 +72,6 @@ export class S3StorageProvider implements IStorageProvider {
 
     getPublicUrl(key: string): string {
         const encodedKey = key.split("/").map(encodeURIComponent).join("/");
-        return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${encodedKey}`;
+        return `${this.publicBaseUrl}/${encodedKey}`;
     }
 }

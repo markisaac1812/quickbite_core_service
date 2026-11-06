@@ -6,4 +6,5 @@ export const storageProvider = new S3StorageProvider({
     bucket: env.aws.s3Bucket,
     accessKeyId: env.aws.accessKeyId || undefined,
     secretAccessKey: env.aws.secretAccessKey || undefined,
+    publicBaseUrl: env.aws.cdnUrl || undefined,
 });
