@@ -3,6 +3,7 @@ import {TOKENS} from "./tokens";
 import {Logger} from "../logger/logger";
 import {cacheProvider} from "../cache/init";
 import {emailProvider} from "../email/init";
+import {storageProvider} from "../storage/init";
 
 //infrastructure
 container.registerSingleton<Logger>(TOKENS.Logger, Logger);
@@ -16,6 +17,7 @@ import {MemberService} from "../../app/rbac/service/member.service";
 import {ProductService} from "../../app/product/service/product.service";
 import {CustomerAddressService} from "../../app/customer-address/service/customer-address.service";
 import {PermissionCacheService} from "../../app/rbac/service/permission-cache.service";
+import {MediaService} from "../../app/media/service/media.service";
 
 
 //controllers
@@ -26,6 +28,7 @@ import {BranchController} from "../../app/branch/controller/branch.controller";
 import {MemberController} from "../../app/rbac/controller/member.controller";
 import {ProductController} from "../../app/product/controller/product.controller";
 import {CustomerAddressController} from "../../app/customer-address/controller/customer-address.controller";
+import {MediaController} from "../../app/media/controller/media.controller";
 
 // Logger
 
@@ -39,6 +42,7 @@ container.registerSingleton<MemberService>(TOKENS.MemberService, MemberService);
 container.registerSingleton<CustomerAddressService>(TOKENS.CustomerAddressService, CustomerAddressService);
 container.registerSingleton<PermissionCacheService>(TOKENS.PermissionCacheService, PermissionCacheService);
 container.registerSingleton<AuthService>(TOKENS.AuthService, AuthService);
+container.registerSingleton<MediaService>(TOKENS.MediaService, MediaService);
 
 container.registerSingleton<AuthController>(TOKENS.AuthController, AuthController);
 container.registerSingleton<UserController>(TOKENS.UserController, UserController);
@@ -47,8 +51,10 @@ container.registerSingleton<BranchController>(TOKENS.BranchController, BranchCon
 container.registerSingleton<ProductController>(TOKENS.ProductController, ProductController);
 container.registerSingleton<MemberController>(TOKENS.MemberController, MemberController);
 container.registerSingleton<CustomerAddressController>(TOKENS.CustomerAddressController, CustomerAddressController);
+container.registerSingleton<MediaController>(TOKENS.MediaController, MediaController);
 
 container.registerInstance(TOKENS.CacheProvider,cacheProvider);
 container.registerInstance(TOKENS.EmailProvider, emailProvider);
+container.registerInstance(TOKENS.StorageProvider, storageProvider);
 
 export {container};
