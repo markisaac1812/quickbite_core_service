@@ -118,4 +118,41 @@ describe("correlationId", () => {
         expect(res.sentHeaders["X-CorrelationId"]).toMatch(uuid);
         expect(next).toHaveBeenCalled();
     });
+
+    it("uses the same id on the request and the response", () => {
+        // Arrange
+        const req = mockRequest();
+        const res = mockResponse();
+
+        // Act
+        correlationId(req, res, mockNext());
+
+        // Assert
+        expect(res.sentHeaders["X-CorrelationId"]).toBe(req.correlationId);
+    });
+
+    it.each([["x-correlationid"], ["x-correlation-id"]])("reuses an incoming %s header", (header) => {
+        // Arrange
+        const req = mockRequest({headers: {[header]: "upstream-id-123"}});
+        const res = mockResponse();
+
+        // Act
+        correlationId(req, res, mockNext());
+
+        // Assert
+        expect(req.correlationId).toBe("upstream-id-123");
+        expect(res.sentHeaders["X-CorrelationId"]).toBe("upstream-id-123");
+    });
+
+    it("ignores an oversized incoming id and mints a fresh one", () => {
+        // Arrange
+        const req = mockRequest({headers: {"x-correlationid": "a".repeat(500)}});
+        const res = mockResponse();
+
+        // Act
+        correlationId(req, res, mockNext());
+
+        // Assert
+        expect(req.correlationId).toHaveLength(36);
+    });
 });
