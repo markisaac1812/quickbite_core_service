@@ -1,0 +1,87 @@
+name: Deploy
+
+# Test -> build & push the image to ECR -> run DB migrations as a one-off ECS
+# task -> roll the API and worker ECS services. Deploy stops if migrations fail.
+#
+# Repository variables (Settings -> Secrets and variables -> Actions -> Variables):
+#   AWS_REGION        e.g. eu-north-1
+#   AWS_DEPLOY_ROLE   IAM role ARN trusted for GitHub OIDC, e.g. arn:aws:iam::<account>:role/github_deploy
+#   ECS_CLUSTER       e.g. quickbite-1
+#   ECS_SUBNETS       private subnets for the migrate task, comma-separated: subnet-aaa,subnet-bbb
+#   ECS_SG            security group allowed to reach RDS, e.g. sg-0123...
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write   # OIDC -> AWS, no long-lived access keys in GitHub
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+  ECR_REPO: core-service
+  ECS_SERVICE: core-service
+  WORKER_SERVICE: core-worker
+  MIGRATE_TASKDEF: core-migrate
+  MIGRATE_CMD: "npm run migrate:prod"
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run tests
+        run: docker compose -f docker-compose.test.yml run --rm test
+      - name: Stop containers
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push
+        run: |
+          REG=${{ steps.ecr.outputs.registry }}
+          IMG=$REG/${{ env.ECR_REPO }}:${{ github.sha }}
+          docker build -t $IMG -t $REG/${{ env.ECR_REPO }}:latest .
+          docker push $REG/${{ env.ECR_REPO }} --all-tags
+
+      # The migrate task definition uses the :latest image just pushed; its
+      # container must be named "app" (the override below targets that name).
+      - name: Migrate
+        run: |
+          ARN=$(aws ecs run-task \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --task-definition ${{ env.MIGRATE_TASKDEF }} \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ vars.ECS_SUBNETS }}],securityGroups=[${{ vars.ECS_SG }}],assignPublicIp=DISABLED}" \
+            --overrides '{"containerOverrides":[{"name":"app","command":["sh","-c","'"${{ env.MIGRATE_CMD }}"'"]}]}' \
+            --query 'tasks[0].taskArn' --output text)
+          aws ecs wait tasks-stopped --cluster ${{ env.ECS_CLUSTER }} --tasks $ARN
+          CODE=$(aws ecs describe-tasks --cluster ${{ env.ECS_CLUSTER }} --tasks $ARN --query 'tasks[0].containers[0].exitCode' --output text)
+          echo "migrate exit code: $CODE"
+          test "$CODE" = "0"
+
+      - name: Deploy
+        run: |
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE }} --force-new-deployment
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.WORKER_SERVICE }} --force-new-deployment
