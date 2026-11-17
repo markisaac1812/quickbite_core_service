@@ -1,3 +1,8 @@
+# Own project name: without it this stack shares "core-services" with
+# docker-compose.yml and reuses the dev containers/volumes (stale RabbitMQ
+# cookie -> broker fails to boot, "dependency failed to start").
+name: core-services-test
+
 services:
 
   # -------------------------------------------------------------------
