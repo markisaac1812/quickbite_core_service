@@ -177,19 +177,12 @@ export class ProductService {
     }
 
     /**
-     * Atomically decrements branch stock for each item. Locks the rows FOR UPDATE
-     * and emits product.stock.changed per decrement so order-service invalidates
-     * its cache.
+     * Atomically decrements branch stock for each item. Locks the rows FOR UPDATE,
+     * fails the whole batch on any shortage, then writes one UPDATE + one outbox
+     * INSERT (product.stock.changed per item) regardless of how many items.
      */
     reserveStock = async (branchId: number, items: ReserveStockInput[]): Promise<ReserveStockResult> => {
-        const sanitized = items
-            .map((it) => ({productId: Number(it.productId), quantity: Number(it.quantity)}))
-            .filter((it) => Number.isInteger(it.productId) && Number.isInteger(it.quantity) && it.quantity > 0);
-
-        if (sanitized.length !== items.length) {
-            throw InvalidReserveItemsError;
-        }
-
+        const sanitized = sanitizeStockItems(items);
         const productIds = sanitized.map((i) => i.productId);
 
         const trx = await db.transaction();
@@ -201,9 +194,10 @@ export class ProductService {
                 .forUpdate();
 
             const byProduct = new Map<number, {stock: number; isAvailable: boolean}>();
-            for (const r of rows) byProduct.set(Number(r.product_id), {stock: r.stock, isAvailable: r.is_available});
+            for (const r of rows) byProduct.set(Number(r.product_id), {stock: Number(r.stock), isAvailable: !!r.is_available});
 
             const offending: OutOfStockItem[] = [];
+            const applied: ReserveStockApplied[] = [];
             for (const it of sanitized) {
                 const current = byProduct.get(it.productId);
                 if (!current || !current.isAvailable) {
@@ -212,31 +206,22 @@ export class ProductService {
                 }
                 if (current.stock < it.quantity) {
                     offending.push({productId: it.productId, requested: it.quantity, available: current.stock});
+                    continue;
                 }
+                applied.push({productId: it.productId, newStock: current.stock - it.quantity});
             }
 
             if (offending.length > 0) {
                 throw outOfStockError(offending);
             }
 
-            const applied: ReserveStockApplied[] = [];
-            for (const it of sanitized) {
-                const newStock = byProduct.get(it.productId)!.stock - it.quantity;
-                await trx("product_branch_details")
-                    .where("branch_id", branchId)
-                    .where("product_id", it.productId)
-                    .update({stock: newStock});
-                applied.push({productId: it.productId, newStock});
-            }
-
-            for (const a of applied) {
-                await insertOutboxEvent(trx, {
-                    aggregateType: "product_branch_details",
-                    aggregateId: `${branchId}:${a.productId}`,
-                    eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
-                    payload: {branchId, productId: a.productId, newStock: a.newStock},
-                });
-            }
+            await bulkUpdateStock(trx, branchId, applied);
+            await insertOutboxEvents(trx, applied.map((a) => ({
+                aggregateType: "product_branch_details",
+                aggregateId: `${branchId}:${a.productId}`,
+                eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
+                payload: {branchId, productId: a.productId, newStock: a.newStock},
+            })));
 
             await trx.commit();
             return {ok: true, applied};
