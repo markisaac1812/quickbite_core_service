@@ -31,7 +31,6 @@ export class RestaurantService {
             updatedAt: now,
             statusUpdatedAt: now,
         })
-        console.log(restaurant);
         const result = await createRestaurant(restaurant,trx);
         return result;
     }

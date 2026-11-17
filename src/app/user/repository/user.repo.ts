@@ -26,7 +26,6 @@ export async function findUserByEmail(email: string): Promise<User | undefined> 
         USER_COLUMNS
     ).where("email", email).whereNull("deleted_at").first();
 
-    console.log(row);
     return row ? toEntity(row) : undefined;
 }
 

@@ -61,7 +61,6 @@ export function buildPaginationResult<T>(rows: T[], limit: number, sortBy: strin
 
     if(data.length > 0) {
           const lastItem = data[data.length - 1] as any;
-          console.log(lastItem)
           nextCursor = hasMore && lastItem ? String(lastItem[sortBy]): null;
     }
     return {
