@@ -76,6 +76,23 @@ describe("products", () => {
             expect(res.body.data[0]).toMatchObject({name: "Koshary", categoryName: "Mains", price: 7500, stock: 10, isAvailable: true});
         });
 
+        it("serves a repeated menu read from the cache for 60 seconds", async () => {
+            // Arrange
+            const koshary = await insertProduct(restaurant.restaurantId, {name: "Koshary"});
+            await setBranchProduct(branchId, koshary, {price: 7500, stock: 10, is_available: true});
+            const url = `/api/branches/${branchId}/products`;
+            const first = await request(app).get(url);
+            await setBranchProduct(branchId, koshary, {price: 9000, stock: 10, is_available: true});
+
+            // Act
+            const second = await request(app).get(url);
+
+            // Assert
+            expect([first.headers["x-cache"], second.headers["x-cache"]]).toEqual(["MISS", "HIT"]);
+            expect(second.body.data[0].price).toBe(7500);
+            expect(cacheStub.store.get(`GET:${url}`)?.ttlSeconds).toBe(60);
+        });
+
         it("answers 404 for the menu of an unknown branch", async () => {
             // Arrange
             const unknownId = 99999;

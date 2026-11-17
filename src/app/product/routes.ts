@@ -5,13 +5,16 @@ import { requireRestaurantMember,rbac, requireBranchAccess } from '../../lib/aut
 import { container } from '../../lib/di/container';
 import { TOKENS } from '../../lib/di/tokens';
 import { requireInternalApiKey} from '../../lib/auth/api-key';
+import { withCache } from '../../lib/cache/withCache';
 
 export const productRouter = Router();
 
 const productController = container.resolve<ProductController>(TOKENS.ProductController);
 
 productRouter.get('/restaurants/:restaurantId/categories', productController.findCategories);
-productRouter.get('/branches/:branchId/products', productController.findProductsByBranch);
+// Public menu, the hottest read path. Short TTL because price/stock/availability
+// edits are not invalidated explicitly; order-service re-checks stock on its own.
+productRouter.get('/branches/:branchId/products', withCache(60), productController.findProductsByBranch);
 productRouter.get('/products/:productId', productController.findProductById);
 
 productRouter.get('/restaurants/:restaurantId/products', authenticate,requireRestaurantMember('restaurantId'),rbac({resource:"core:product", action:"read"}), productController.findProductByrestaurantId);

@@ -18,6 +18,8 @@ branchRouter.patch("/branches/:branchId",authenticate,requireBranchAccess('branc
 branchRouter.patch("/branches/:id/status",authenticate, branchController.updateStatus);
 
 // Internal (service-to-service)
-branchRouter.get('/internal/branches/:id', requireInternalApiKey, branchController.findByIdWithRestaurant);
+// Cached 60s; BranchService.update/updateStatus drop the entry so order-service
+// sees status / accept-orders changes immediately.
+branchRouter.get('/internal/branches/:id', requireInternalApiKey, withCache(60), branchController.findByIdWithRestaurant);
 branchRouter.get('/internal/branches', requireInternalApiKey, withCache(60), branchController.findByIdsWithRestaurant);
     

@@ -328,6 +328,26 @@ describe("branches", () => {
             expect(res.body).toEqual({error: "Branch not found"});
         });
 
+        it("caches the lookup, and a status change is visible on the next read", async () => {
+            // Arrange — first read fills the cache, then the row changes behind it
+            const {restaurantId} = await seedRestaurant();
+            const branchId = await insertBranch(restaurantId);
+            const url = `/api/internal/branches/${branchId}`;
+            const first = await request(app).get(url).set(INTERNAL_HEADERS);
+            await db("restaurant_branches").where({id: branchId}).update({accept_orders: false});
+            const cached = await request(app).get(url).set(INTERNAL_HEADERS);
+
+            // Act — the status endpoint evicts the entry
+            await request(app).patch(`/api/branches/${branchId}/status`).set("Cookie", authCookie(ADMIN)).send({isActive: false});
+            const fresh = await request(app).get(url).set(INTERNAL_HEADERS);
+
+            // Assert
+            expect([first.headers["x-cache"], cached.headers["x-cache"], fresh.headers["x-cache"]]).toEqual(["MISS", "HIT", "MISS"]);
+            expect(cached.body.data).toMatchObject({isActive: true, acceptOrders: true});
+            expect(fresh.body.data).toMatchObject({isActive: false, acceptOrders: false});
+            expect(cacheStub.store.get(`GET:${url}`)?.ttlSeconds).toBe(60);
+        });
+
         it("requires the internal api key", async () => {
             // Arrange
             const {restaurantId} = await seedRestaurant();
