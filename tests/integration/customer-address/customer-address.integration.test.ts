@@ -81,7 +81,7 @@ describe("customer addresses", () => {
             const res = await anonymous;
 
             // Assert
-            expect(res.status).toBe(403);
+            expect(res.status).toBe(401);
         });
     });
 
