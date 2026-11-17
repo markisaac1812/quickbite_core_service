@@ -16,6 +16,8 @@ x-core-app: &core-app
     # The image only ships compiled JS, so migrations run from dist/.
     DB_MIGRATIONS_DIRECTORY: dist/migrations
     DB_MIGRATIONS_EXTENSION: js
+    # Local Postgres has no TLS; production (RDS) leaves DB_SSL unset -> on.
+    DB_SSL: "false"
 
 services:
   postgres:

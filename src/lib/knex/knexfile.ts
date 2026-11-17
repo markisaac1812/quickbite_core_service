@@ -8,7 +8,11 @@ const config: Knex.Config = {
         port: env.db.port,
         user: env.db.username,
         password: env.db.password,
-        database: env.db.name
+        database: env.db.name,
+        // RDS requires TLS. Its certificate is signed by the AWS RDS CA, which is
+        // not in Node's trust store, so the chain is not verified (traffic stays
+        // encrypted inside the VPC).
+        ssl: env.db.ssl ? {rejectUnauthorized: false} : false,
     },
     pool: {
         min: 2,
