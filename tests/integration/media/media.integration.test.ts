@@ -119,7 +119,7 @@ describe("media (direct-to-S3 presigned upload)", () => {
         it("rejects unauthenticated requests", async () => {
             const res = await request(app).post(UPLOAD_URL).send(PNG);
 
-            expect(res.status).toBe(403);
+            expect(res.status).toBe(401);
         });
 
         it("rejects customers", async () => {
@@ -242,7 +242,7 @@ describe("media (direct-to-S3 presigned upload)", () => {
 
             const res = await request(app).post(confirmUrl(mediaId));
 
-            expect(res.status).toBe(403);
+            expect(res.status).toBe(401);
         });
     });
 

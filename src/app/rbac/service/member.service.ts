@@ -44,7 +44,8 @@ export class MemberService {
             throw RoleNotFoundError
         }
 
-        await this.validateBranchOwnership(data.branchIds ?? [], restaurantId);
+        const branchIds = data.branchIds ?? [];
+        await this.validateBranchOwnership(branchIds, restaurantId);
 
         // create user, member, assign branches
         const trx = await db.transaction();
@@ -69,7 +70,7 @@ export class MemberService {
                 }, trx
             )
             // check that those branches belong to that restaurant
-            const rows = (data.branchIds ?? []).map(branchId => new MemberBranch({
+            const rows = branchIds.map(branchId => new MemberBranch({
                 branchId: branchId,
                 memberId: member.id,
                 createdAt: now,
@@ -85,15 +86,29 @@ export class MemberService {
             await createPasswordReset({
                     userId: user.id,
                     otpHashed: hashedOtp,
-                    expiresAt: new Date(Date.now() + toMs(1, 'h')),
+                    expiresAt: new Date(Date.now() + toMs(7, 'd')),
                     createdAt: new Date(),
                 }, trx
             )
-            // TODO: send email
             const email = memberInvitationEmail(otp, data.role);
             await this.emailProvider.send(user.email, email.subject, email.html);
 
             await trx.commit()
+
+            // The member stays inactive until they accept the invitation.
+            return {
+                message: "Member invited successfully",
+                member: {
+                    id: Number(member.id), // pg returns bigint ids as strings
+                    userId: Number(user.id),
+                    email: user.email,
+                    name: user.name,
+                    phone: user.phone,
+                    role: data.role,
+                    status: MemberStatus.INACTIVE,
+                    branchIds,
+                },
+            };
         }
         catch (err) {
             await trx.rollback();

@@ -49,11 +49,29 @@ describe("restaurant members", () => {
             const res = await request(app).post(membersUrl()).set("Cookie", authCookie(restaurant.ownerJwt)).send(body);
 
             // Assert
-            expect(res.status).toBe(200);
+            expect(res.status).toBe(201);
             const user = await db("users").where({email: "staff@test.com"}).first();
             expect(user).toMatchObject({system_role: "restaurant_user", name: "Sara", phone: "01077778888"});
             const member = await db("restaurant_members as rm").join("roles as r", "rm.role_id", "r.id").where("rm.user_id", user.id).first("rm.id", "rm.status", "r.name");
             expect(member).toMatchObject({status: "inactive", name: "staff"});
+            expect(res.body).toEqual({
+                message: "Member invited successfully",
+                member: {
+                    id: Number(member.id),
+                    userId: Number(user.id),
+                    email: "staff@test.com",
+                    name: "Sara",
+                    phone: "01077778888",
+                    role: "staff",
+                    status: "inactive",
+                    branchIds: [branchId],
+                },
+            });
+            // the invitation code lives as long as the email says (7 days)
+            const reset = await db("password_resets").where({user_id: user.id}).first();
+            const ttlDays = (new Date(reset.expires_at).getTime() - Date.now()) / 86_400_000;
+            expect(ttlDays).toBeGreaterThan(6.9);
+            expect(ttlDays).toBeLessThanOrEqual(7);
             expect((await db("member_branches").where({member_id: member.id})).map((r) => Number(r.branch_id))).toEqual([branchId]);
             expect(emailStub.sent).toHaveLength(1);
             expect(emailStub.sent[0]).toMatchObject({to: "staff@test.com", subject: "You're Invited to QuickBite"});

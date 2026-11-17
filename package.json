@@ -10,6 +10,7 @@
     "start": "node dist/server.js",
     "worker": "node dist/worker.js",
     "migrate": "knex --knexfile src/lib/knex/knexfile.ts migrate:latest",
+    "migrate:prod": "DB_MIGRATIONS_DIRECTORY=dist/migrations DB_MIGRATIONS_EXTENSION=js knex --knexfile dist/lib/knex/knexfile.js migrate:latest",
     "migrate:rollback": "knex --knexfile src/lib/knex/knexfile.ts migrate:rollback",
     "migrate:status": "knex --knexfile src/lib/knex/knexfile.ts migrate:status",
     "migrate:make": "knex --knexfile src/lib/knex/knexfile.ts migrate:make"

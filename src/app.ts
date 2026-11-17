@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { env } from "./lib/config/env";
 import helmet from "helmet";
+import { correlationId } from "./lib/correlation/correlationId";
 
 export function createApp() {
     const app = express();
@@ -16,6 +17,7 @@ export function createApp() {
     app.set("query parser", "extended");
     app.use(express.json());
     app.use(cookieParser());
+    app.use(correlationId);
     app.use('/api', routes);
     app.use(errorHandler);
     return app;

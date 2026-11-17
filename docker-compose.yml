@@ -16,6 +16,8 @@ x-core-app: &core-app
     # The image only ships compiled JS, so migrations run from dist/.
     DB_MIGRATIONS_DIRECTORY: dist/migrations
     DB_MIGRATIONS_EXTENSION: js
+    # Local Postgres has no TLS; production (RDS) leaves DB_SSL unset -> on.
+    DB_SSL: "false"
 
 services:
   postgres:
@@ -60,7 +62,8 @@ services:
   # One-shot: applies knex migrations, then exits. App + worker wait for it.
   migrate:
     <<: *core-app
-    command: ["node", "node_modules/knex/bin/cli.js", "--knexfile", "dist/lib/knex/knexfile.js", "migrate:latest"]
+    # Same command the production migrate task runs (see .github/workflows/deploy.yml).
+    command: ["npm", "run", "migrate:prod"]
     depends_on:
       postgres:
         condition: service_healthy

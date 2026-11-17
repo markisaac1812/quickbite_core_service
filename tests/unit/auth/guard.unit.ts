@@ -43,7 +43,7 @@ describe("authenticate", () => {
 
         // Assert
         expect(act).toThrow(NotAuthenticatedError);
-        expect(NotAuthenticatedError.statusCode).toBe(403);
+        expect(NotAuthenticatedError.statusCode).toBe(401);
     });
 });
 

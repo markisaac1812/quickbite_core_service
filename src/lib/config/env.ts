@@ -14,6 +14,9 @@ const schema = z.object({
     DB_POOL_MAX: z.string().default("10"),
     DB_MIGRATIONS_DIRECTORY: z.string(),
     DB_MIGRATIONS_EXTENSION: z.string(),
+    // TLS to Postgres. Unset -> on in production (RDS), off elsewhere.
+    // Set "false" to talk to a plain local Postgres from the production image.
+    DB_SSL: z.enum(["true", "false"]).optional(),
     ACCESS_SECRET: z.string(),
     REFRESH_SECRET: z.string(),
     ACCESS_EXPIRES_IN: z.string().default("900"), // 15 minutes
@@ -61,7 +64,8 @@ export const env = {
         name: parsed.DB_NAME,
         poolMax: Number(parsed.DB_POOL_MAX),
         migrationsDirectory: path.resolve(__dirname, "../../../", parsed.DB_MIGRATIONS_DIRECTORY),
-        migrationsExtension: parsed.DB_MIGRATIONS_EXTENSION
+        migrationsExtension: parsed.DB_MIGRATIONS_EXTENSION,
+        ssl: parsed.DB_SSL ? parsed.DB_SSL === "true" : process.env.NODE_ENV === "production",
     },
     jwt:{
         accessSecret: parsed.ACCESS_SECRET,

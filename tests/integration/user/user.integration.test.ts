@@ -39,7 +39,7 @@ describe("users", () => {
             expect(res.body).toEqual({id: user.id, email: "me@test.com", phone: user.phone, name: "Mona", systemRole: "customer"});
         });
 
-        it("answers 403 without an access token", async () => {
+        it("answers 401 without an access token", async () => {
             // Arrange
             const noCookie = request(app).get("/api/users/me");
 
@@ -47,7 +47,7 @@ describe("users", () => {
             const res = await noCookie;
 
             // Assert
-            expect(res.status).toBe(403);
+            expect(res.status).toBe(401);
             expect(res.body).toEqual({error: "Invalid token credentials"});
         });
 
